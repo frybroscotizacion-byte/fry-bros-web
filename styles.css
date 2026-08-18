@@ -167,23 +167,18 @@ nav a:hover::after {
   position: absolute;
   inset: 0;
 
-  background:
-    radial-gradient(
-      circle at 70% 45%,
-      rgba(177, 85, 30, 0.28),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 80% 60%,
-      rgba(85, 38, 15, 0.4),
-      transparent 38%
-    ),
+ background:
     linear-gradient(
-      110deg,
-      #080808 20%,
-      #11100f 58%,
-      #24140b 100%
-    );
+        90deg,
+        rgba(0, 0, 0, 0.82) 0%,
+        rgba(0, 0, 0, 0.55) 50%,
+        rgba(0, 0, 0, 0.30) 100%
+    ),
+    url("ChatGPT Imagen 18 ago 2026, 19_31_54.png");
+
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
 
   transform: scale(1.04);
 

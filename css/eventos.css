@@ -1,6 +1,20 @@
 .eventos-frybros {
+  position: relative;
   padding: 90px 0;
-  background: #0d0d0d;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(8, 8, 8, 0.96) 0%,
+      rgba(8, 8, 8, 0.85) 40%,
+      rgba(8, 8, 8, 0.48) 70%,
+      rgba(8, 8, 8, 0.35) 100%
+    ),
+    url("../images/fondo-eventos.png");
+
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
 }
 
 .eventos-encabezado {

@@ -318,6 +318,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  const servicioSolicitado = new URLSearchParams(window.location.search).get("servicio");
+  const serviciosValidos = ["papas", "hamburguesas", "hotdogs", "churrascos", "lomitos"];
+  if (serviciosValidos.includes(servicioSolicitado)) {
+    servicioSelect.value = servicioSolicitado;
+    servicioSelect.dispatchEvent(new Event("change"));
+  }
+
   boton.addEventListener("click", async () => {
     const servicio = servicioSelect.value;
     const personas = Number(personasSelect.value);

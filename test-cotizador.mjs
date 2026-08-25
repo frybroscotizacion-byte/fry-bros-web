@@ -79,4 +79,19 @@ const payloadValido = validarPayload({
 assert.ok(payloadValido.datos, "El Worker debe aceptar una cotización válida");
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 110 }).error);
 
+const paginasServicio = [
+  ["pages/papas-fritas.html", "papas-fritas"],
+  ["pages/hamburguesas.html", "hamburguesas"],
+  ["pages/hot-dogs.html", "hot-dogs"],
+  ["pages/lomitos.html", "lomitos"],
+  ["pages/churrascos.html", "churrascos"]
+];
+
+for (const [ruta, id] of paginasServicio) {
+  const pagina = fs.readFileSync(new URL(`./${ruta}`, import.meta.url), "utf8");
+  assert.match(pagina, new RegExp(`data-servicio="${id}"`));
+  assert.match(pagina, /detalle-servicio\.css/);
+  assert.match(pagina, /detalle-servicio\.js/);
+}
+
 console.log("Pruebas correctas: tramos, papas, hot dogs y sándwiches.");

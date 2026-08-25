@@ -2,7 +2,7 @@ const CONFIG = {
   transporte: 7000,
   tarifa: { hasta50: 60000, hasta100: 80000 },
   hamburguesasPorPersona: 2,
-  churrascosLomitosPorPersona: 2.5,
+  churrascosLomitosPorPersona: 2,
   hotDogsPorPersona: 2,
   papas: {
     40: 103127, 50: 108821, 60: 109325, 70: 125019,

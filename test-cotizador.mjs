@@ -64,8 +64,8 @@ assert.equal(
 );
 assert.equal(calculator.calcular("hamburguesas", 20).cantidadProducto, 40);
 assert.equal(calculator.calcular("hamburguesas", 100).cantidadProducto, 200);
-assert.equal(calculator.calcular("churrascos", 20).cantidadProducto, 50);
-assert.equal(calculator.calcular("lomitos", 100).cantidadProducto, 250);
+assert.equal(calculator.calcular("churrascos", 20).cantidadProducto, 40);
+assert.equal(calculator.calcular("lomitos", 100).cantidadProducto, 200);
 assert.equal(calculator.calcular("hotdogs", 20).cantidadProducto, 40);
 assert.equal(calculator.calcular("hotdogs", 100).cantidadProducto, 200);
 

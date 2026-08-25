@@ -251,7 +251,9 @@ async function registrar(request, env) {
     fechaEvento: d.fechaEvento,
     tipoEvento: d.tipoEvento,
     personas: d.personas,
-    comuna: textoSeguroParaSheets(d.comuna),
+    // El Apps Script actual escribe `comuna` en la columna LUGAR. Se envía
+    // la ubicación completa para conservar también la dirección del evento.
+    comuna: textoSeguroParaSheets(`${d.direccion}, ${d.comuna}`),
     direccion: textoSeguroParaSheets(d.direccion),
     ubicacion: textoSeguroParaSheets(`${d.direccion}, ${d.comuna}`),
     servicio: cotizacion.servicio,

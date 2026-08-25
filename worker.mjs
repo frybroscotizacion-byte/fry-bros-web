@@ -218,7 +218,8 @@ async function registrar(request, env) {
   if (origen && origen !== new URL(request.url).origin) {
     return json({ success: false, error: "Origen no permitido." }, 403);
   }
-  if (!env.GOOGLE_SHEETS_WEBHOOK_URL || !env.FRY_BROS_SECRET) {
+  const sheetsWebhookUrl = env.GOOGLE_SHEETS_WEBHOOK_URL || env.GOOGLE_SHEETS_WEBHOOK;
+  if (!sheetsWebhookUrl || !env.FRY_BROS_SECRET) {
     return json({ success: false, error: "Registro temporalmente no disponible." }, 503);
   }
 
@@ -259,7 +260,7 @@ async function registrar(request, env) {
   };
 
   try {
-    const respuesta = await fetch(env.GOOGLE_SHEETS_WEBHOOK_URL, {
+    const respuesta = await fetch(sheetsWebhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

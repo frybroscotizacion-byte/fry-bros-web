@@ -1,7 +1,8 @@
 const CONFIG = {
   transporte: 7000,
   tarifa: { hasta50: 60000, hasta100: 80000 },
-  personasPorSandwich: 2.5,
+  hamburguesasPorPersona: 2,
+  churrascosLomitosPorPersona: 2.5,
   hotDogsPorPersona: 2,
   papas: {
     40: 103127, 50: 108821, 60: 109325, 70: 125019,
@@ -100,7 +101,7 @@ function calcularCotizacionServidor(tipo, personas) {
 
   if (tipo === "hamburguesas") {
     const h = CONFIG.hamburguesas;
-    const cantidad = Math.ceil(personas * CONFIG.personasPorSandwich);
+    const cantidad = Math.ceil(personas * CONFIG.hamburguesasPorPersona);
     const costo = unidad(h.carne.precio, h.carne.unidades) +
       unidad(g.pan.precio, g.pan.unidades) +
       unidad(h.queso.precio, h.queso.unidades) +
@@ -118,7 +119,7 @@ function calcularCotizacionServidor(tipo, personas) {
 
   if (tipo === "churrascos" || tipo === "lomitos") {
     const c = CONFIG.churrascos;
-    const cantidad = Math.ceil(personas * CONFIG.personasPorSandwich);
+    const cantidad = Math.ceil(personas * CONFIG.churrascosLomitosPorPersona);
     const costo = unidad(c.carne.precio, c.carne.unidades) +
       unidad(g.pan.precio, g.pan.unidades) +
       gramo(g.tomate.precio, g.tomate.gramos) * p.tomate +

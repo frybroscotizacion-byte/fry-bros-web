@@ -2,6 +2,21 @@
   color: #fff;
 }
 
+.resultado-cantidad {
+  max-width: 640px;
+  margin: 18px auto 0;
+  padding: 15px 18px;
+  border: 1px solid rgba(212, 122, 44, 0.35);
+  border-radius: 12px;
+  background: rgba(212, 122, 44, 0.1);
+  color: #d7d7d7;
+  line-height: 1.5;
+}
+
+.resultado-cantidad strong {
+  color: #fff;
+}
+
 .resultado-incluye {
   max-width: 640px;
   margin: 26px auto;

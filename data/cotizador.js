@@ -19,7 +19,8 @@ const CONFIG_COTIZADOR = {
   // se publican en el JavaScript que recibe el navegador.
   registroEndpoint: "/api/cotizaciones",
 
-  personasPorSandwich: 2.5,
+  hamburguesasPorPersona: 2,
+  churrascosLomitosPorPersona: 2.5,
   hotDogsPorPersona: 2,
 
   // PAPAS FRITAS — tabla final entregada por Fry Bros. NO MODIFICAR.

@@ -63,7 +63,7 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
   }
 
   function calcularHamburguesas(personas) {
-    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.personasPorSandwich);
+    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.hamburguesasPorPersona);
     const g = CONFIG_COTIZADOR.ingredientes;
     const h = CONFIG_COTIZADOR.hamburguesas;
     const p = CONFIG_COTIZADOR.porciones;
@@ -86,7 +86,7 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
   }
 
   function calcularChurrasco(personas, nombre) {
-    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.personasPorSandwich);
+    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.churrascosLomitosPorPersona);
     const g = CONFIG_COTIZADOR.ingredientes;
     const c = CONFIG_COTIZADOR.churrascos;
     const p = CONFIG_COTIZADOR.porciones;
@@ -168,6 +168,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function fechaEnPalabras(fechaISO) {
     return FECHA_CL.format(new Date(`${fechaISO}T12:00:00`));
+  }
+
+  function obtenerDetalleProductos(cotizacion) {
+    const nombres = {
+      Hamburguesas: "hamburguesas",
+      Churrascos: "churrascos",
+      Lomitos: "lomitos",
+      "Hot Dogs": "hot dogs"
+    };
+    const producto = nombres[cotizacion.servicio];
+
+    if (!producto || !Number.isFinite(cotizacion.cantidadProducto)) return null;
+
+    return {
+      producto,
+      cantidad: cotizacion.cantidadProducto.toLocaleString("es-CL"),
+      porPersona: (cotizacion.cantidadProducto / cotizacion.personas).toLocaleString("es-CL", {
+        maximumFractionDigits: 1
+      })
+    };
   }
 
   async function registrarCotizacion(payload) {
@@ -361,6 +381,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const detalleProductos = obtenerDetalleProductos(cotizacion);
+
     const datosCotizacion = {
       fechaRegistro: new Date().toISOString(),
       nombre,
@@ -394,11 +416,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const mensajeWhatsApp = [
       "Hola Fry Bros, quiero completar la cotización de",
       `${cotizacion.servicio} para ${cotizacion.personas} personas,`,
+      detalleProductos
+        ? `considerando ${detalleProductos.cantidad} ${detalleProductos.producto} en total,`
+        : "",
       `el día ${fechaEnPalabras(fechaEvento)},`,
       `en ${direccion}, comuna de ${comuna}.`,
       `Mi nombre es ${nombre} y mi WhatsApp es ${whatsapp}.`,
       `El valor estimado fue de ${CLP.format(cotizacion.total)}.`
-    ].join(" ");
+    ].filter(Boolean).join(" ");
 
     const enlaceWhatsApp =
       `https://wa.me/${CONFIG_COTIZADOR.whatsappNegocio}?text=${encodeURIComponent(mensajeWhatsApp)}`;
@@ -412,6 +437,13 @@ document.addEventListener("DOMContentLoaded", () => {
         <strong>${fechaEnPalabras(fechaEvento)}</strong> en
         <strong>${comuna}</strong>.
       </p>
+
+      ${detalleProductos ? `
+        <p class="resultado-cantidad">
+          Se están cotizando <strong>${detalleProductos.cantidad} ${detalleProductos.producto}</strong>
+          en total: <strong>${detalleProductos.porPersona} por persona</strong>.
+        </p>
+      ` : ""}
 
       <div class="resultado-incluye">
         <h4>Tu servicio Fry Bros incluye</h4>

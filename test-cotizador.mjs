@@ -56,6 +56,17 @@ for (const type of ["hamburguesas", "hotdogs", "churrascos", "lomitos"]) {
       `El Worker debe recalcular ${type} para ${people} personas`
     );
   }
+
+  for (const productsPerPerson of [1, 1.5, 2, 2.5, 3]) {
+    for (const people of [20, 100]) {
+      const quote = calculator.calcular(type, people, productsPerPerson);
+      const serverQuote = calcularCotizacionServidor(type, people, productsPerPerson);
+      assert.equal(quote.cantidadProducto, Math.ceil(people * productsPerPerson));
+      assert.equal(serverQuote.cantidadProducto, quote.cantidadProducto);
+      assert.equal(serverQuote.productosPorPersona, productsPerPerson);
+      assert.equal(serverQuote.total, quote.total);
+    }
+  }
 }
 
 assert.equal(
@@ -72,6 +83,7 @@ assert.equal(calculator.calcular("hotdogs", 100).cantidadProducto, 200);
 const payloadValido = validarPayload({
   servicioId: "hamburguesas",
   personas: 100,
+  productosPorPersona: 2.5,
   nombre: "Cliente de prueba",
   whatsapp: "+56 9 1234 5678",
   correo: "cliente@example.com",
@@ -81,7 +93,11 @@ const payloadValido = validarPayload({
   direccion: "Dirección de prueba 123"
 });
 assert.ok(payloadValido.datos, "El Worker debe aceptar una cotización válida");
+assert.equal(payloadValido.datos.productosPorPersona, 2.5);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 110 }).error);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", productosPorPersona: 4 }).error);
+assert.match(app, /id="cotizador-productos-por-persona"/);
+assert.match(app, /productosPorPersona/);
 
 const paginasServicio = [
   ["pages/papas-fritas.html", "papas-fritas"],
@@ -98,4 +114,4 @@ for (const [ruta, id] of paginasServicio) {
   assert.match(pagina, /detalle-servicio\.js/);
 }
 
-console.log("Pruebas correctas: tramos, papas, hot dogs y sándwiches.");
+console.log("Pruebas correctas: cantidades variables, tramos, papas, hot dogs y sándwiches.");

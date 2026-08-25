@@ -19,9 +19,10 @@ const CONFIG_COTIZADOR = {
   // se publican en el JavaScript que recibe el navegador.
   registroEndpoint: "/api/cotizaciones",
 
-  hamburguesasPorPersona: 2,
-  churrascosLomitosPorPersona: 2,
-  hotDogsPorPersona: 2,
+  productosPorPersona: {
+    predeterminado: 2,
+    opciones: [1, 1.5, 2, 2.5, 3]
+  },
 
   // PAPAS FRITAS — tabla final entregada por Fry Bros. NO MODIFICAR.
   papas: {

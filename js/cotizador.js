@@ -3,6 +3,12 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
   const costoGramo = (precio, gramos) => precio / gramos;
   const redondearPrecio = (numero) => Math.ceil(numero / 1000) * 1000;
 
+  function normalizarProductosPorPersona(valor) {
+    const configuracion = CONFIG_COTIZADOR.productosPorPersona;
+    const numero = valor === undefined ? configuracion.predeterminado : Number(valor);
+    return configuracion.opciones.includes(numero) ? numero : null;
+  }
+
   function calcularServicio(personas) {
     const tramos = CONFIG_COTIZADOR.servicioSandwiches;
 
@@ -62,8 +68,8 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
     };
   }
 
-  function calcularHamburguesas(personas) {
-    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.hamburguesasPorPersona);
+  function calcularHamburguesas(personas, productosPorPersona) {
+    const cantidad = Math.ceil(personas * productosPorPersona);
     const g = CONFIG_COTIZADOR.ingredientes;
     const h = CONFIG_COTIZADOR.hamburguesas;
     const p = CONFIG_COTIZADOR.porciones;
@@ -85,8 +91,8 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
     return baseSandwich(personas, "Hamburguesas", cantidad, costoPorUnidad);
   }
 
-  function calcularChurrasco(personas, nombre) {
-    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.churrascosLomitosPorPersona);
+  function calcularChurrasco(personas, nombre, productosPorPersona) {
+    const cantidad = Math.ceil(personas * productosPorPersona);
     const g = CONFIG_COTIZADOR.ingredientes;
     const c = CONFIG_COTIZADOR.churrascos;
     const p = CONFIG_COTIZADOR.porciones;
@@ -105,8 +111,8 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
     return baseSandwich(personas, nombre, cantidad, costoPorUnidad);
   }
 
-  function calcularHotDogs(personas) {
-    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.hotDogsPorPersona);
+  function calcularHotDogs(personas, productosPorPersona) {
+    const cantidad = Math.ceil(personas * productosPorPersona);
     const h = CONFIG_COTIZADOR.hotDogs;
     const p = CONFIG_COTIZADOR.porciones;
 
@@ -129,12 +135,16 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
     return baseSandwich(personas, "Hot Dogs", cantidad, costoPorUnidad, extras);
   }
 
-  function calcular(tipo, personas) {
+  function calcular(tipo, personas, valorProductosPorPersona) {
     if (tipo === "papas") return calcularPapas(personas);
-    if (tipo === "hamburguesas") return calcularHamburguesas(personas);
-    if (tipo === "hotdogs") return calcularHotDogs(personas);
-    if (tipo === "churrascos") return calcularChurrasco(personas, "Churrascos");
-    if (tipo === "lomitos") return calcularChurrasco(personas, "Lomitos");
+    const productosPorPersona = normalizarProductosPorPersona(valorProductosPorPersona);
+    if (!productosPorPersona) {
+      return { error: "Selecciona una cantidad válida de sándwiches o completos por persona." };
+    }
+    if (tipo === "hamburguesas") return calcularHamburguesas(personas, productosPorPersona);
+    if (tipo === "hotdogs") return calcularHotDogs(personas, productosPorPersona);
+    if (tipo === "churrascos") return calcularChurrasco(personas, "Churrascos", productosPorPersona);
+    if (tipo === "lomitos") return calcularChurrasco(personas, "Lomitos", productosPorPersona);
     return { error: "Selecciona un servicio válido." };
   }
 
@@ -238,6 +248,16 @@ document.addEventListener("DOMContentLoaded", () => {
           </select>
         </div>
 
+        <div class="campo-cotizador" id="campo-productos-por-persona">
+          <label for="cotizador-productos-por-persona">Cantidad por persona</label>
+          <select id="cotizador-productos-por-persona" disabled>
+            <option value="">Primero selecciona un servicio</option>
+          </select>
+          <small class="campo-ayuda">
+            Elige cuántos sándwiches o completos recibirá cada persona. El precio se ajusta automáticamente.
+          </small>
+        </div>
+
         <div class="cotizador-datos">
           <div class="campo-cotizador">
             <label for="cotizador-nombre">Nombre y apellido</label>
@@ -296,6 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const servicioSelect = document.querySelector("#cotizador-servicio");
   const personasSelect = document.querySelector("#cotizador-personas");
+  const productosPorPersonaSelect = document.querySelector("#cotizador-productos-por-persona");
   const boton = document.querySelector("#calcular-cotizacion");
   const resultado = document.querySelector("#resultado-cotizador");
   const nombreInput = document.querySelector("#cotizador-nombre");
@@ -311,11 +332,28 @@ document.addEventListener("DOMContentLoaded", () => {
   servicioSelect.addEventListener("change", () => {
     const servicio = servicioSelect.value;
     personasSelect.innerHTML = "";
+    productosPorPersonaSelect.innerHTML = "";
 
     if (!servicio) {
       personasSelect.disabled = true;
       personasSelect.innerHTML = "<option>Primero selecciona un servicio</option>";
+      productosPorPersonaSelect.disabled = true;
+      productosPorPersonaSelect.innerHTML = "<option>Primero selecciona un servicio</option>";
       return;
+    }
+
+    if (servicio === "papas") {
+      productosPorPersonaSelect.disabled = true;
+      productosPorPersonaSelect.innerHTML = "<option value=\"\">No aplica para Papas Fritas</option>";
+    } else {
+      productosPorPersonaSelect.disabled = false;
+      for (const cantidad of CONFIG_COTIZADOR.productosPorPersona.opciones) {
+        const opcion = document.createElement("option");
+        opcion.value = cantidad;
+        opcion.textContent = `${cantidad.toLocaleString("es-CL")} por persona${cantidad === 2 ? " (recomendado)" : ""}`;
+        opcion.selected = cantidad === CONFIG_COTIZADOR.productosPorPersona.predeterminado;
+        productosPorPersonaSelect.appendChild(opcion);
+      }
     }
 
     personasSelect.disabled = false;
@@ -348,6 +386,9 @@ document.addEventListener("DOMContentLoaded", () => {
   boton.addEventListener("click", async () => {
     const servicio = servicioSelect.value;
     const personas = Number(personasSelect.value);
+    const productosPorPersona = servicio === "papas"
+      ? null
+      : Number(productosPorPersonaSelect.value);
     const nombre = nombreInput.value.trim();
     const whatsapp = whatsappInput.value.trim();
     const correo = correoInput.value.trim();
@@ -357,7 +398,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const direccion = direccionInput.value.trim();
 
     if (
-      !servicio || !personas || !nombre || !whatsapp || !tipoEvento ||
+      !servicio || !personas || (servicio !== "papas" && !productosPorPersona) ||
+      !nombre || !whatsapp || !tipoEvento ||
       !fechaEvento || !comuna || !direccion
     ) {
       resultado.hidden = false;
@@ -373,7 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const cotizacion = FRY_BROS_COTIZADOR.calcular(servicio, personas);
+    const cotizacion = FRY_BROS_COTIZADOR.calcular(servicio, personas, productosPorPersona);
     resultado.hidden = false;
 
     if (cotizacion.error) {
@@ -393,7 +435,10 @@ document.addEventListener("DOMContentLoaded", () => {
       personas,
       comuna,
       direccion,
+      servicioId: servicio,
       servicio: cotizacion.servicio,
+      productosPorPersona,
+      cantidadProducto: cotizacion.cantidadProducto,
       cotizacion: cotizacion.total,
       estado: "Nueva"
     };
@@ -417,7 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Hola Fry Bros, quiero completar la cotización de",
       `${cotizacion.servicio} para ${cotizacion.personas} personas,`,
       detalleProductos
-        ? `considerando ${detalleProductos.cantidad} ${detalleProductos.producto} en total,`
+        ? `considerando ${detalleProductos.cantidad} ${detalleProductos.producto} en total (${detalleProductos.porPersona} por persona),`
         : "",
       `el día ${fechaEnPalabras(fechaEvento)},`,
       `en ${direccion}, comuna de ${comuna}.`,

@@ -85,6 +85,18 @@
   line-height: 1.4;
 }
 
+#campo-productos-por-persona {
+  padding: 16px;
+  border: 1px solid rgba(212, 122, 44, 0.24);
+  border-radius: 14px;
+  background: rgba(212, 122, 44, 0.06);
+}
+
+#cotizador-productos-por-persona:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .resultado-registro {
   max-width: 640px;
   margin: 18px auto 0;

@@ -1,9 +1,10 @@
 const CONFIG = {
   transporte: 7000,
   tarifa: { hasta50: 60000, hasta100: 80000 },
-  hamburguesasPorPersona: 2,
-  churrascosLomitosPorPersona: 2,
-  hotDogsPorPersona: 2,
+  productosPorPersona: {
+    predeterminado: 2,
+    opciones: [1, 1.5, 2, 2.5, 3]
+  },
   papas: {
     40: 103127, 50: 108821, 60: 109325, 70: 125019,
     80: 125523, 90: 126027, 100: 141722, 110: 142226,
@@ -91,9 +92,21 @@ function totalSandwich(personas, cantidad, costoPorUnidad, extras = 0) {
   return redondear(ingredientes + calcularUtiles(personas) + tarifa + CONFIG.transporte);
 }
 
-function calcularCotizacionServidor(tipo, personas) {
+function calcularCotizacionServidor(tipo, personas, valorProductosPorPersona) {
   if (tipo === "papas") {
-    return { servicio: NOMBRES_SERVICIO[tipo], total: CONFIG.papas[personas] || null };
+    return {
+      servicio: NOMBRES_SERVICIO[tipo],
+      total: CONFIG.papas[personas] || null,
+      productosPorPersona: null,
+      cantidadProducto: null
+    };
+  }
+
+  const productosPorPersona = valorProductosPorPersona === undefined
+    ? CONFIG.productosPorPersona.predeterminado
+    : Number(valorProductosPorPersona);
+  if (!CONFIG.productosPorPersona.opciones.includes(productosPorPersona)) {
+    return { servicio: NOMBRES_SERVICIO[tipo] || null, total: null };
   }
 
   const g = CONFIG.ingredientes;
@@ -101,7 +114,7 @@ function calcularCotizacionServidor(tipo, personas) {
 
   if (tipo === "hamburguesas") {
     const h = CONFIG.hamburguesas;
-    const cantidad = Math.ceil(personas * CONFIG.hamburguesasPorPersona);
+    const cantidad = Math.ceil(personas * productosPorPersona);
     const costo = unidad(h.carne.precio, h.carne.unidades) +
       unidad(g.pan.precio, g.pan.unidades) +
       unidad(h.queso.precio, h.queso.unidades) +
@@ -114,12 +127,17 @@ function calcularCotizacionServidor(tipo, personas) {
       gramo(h.barbecue.precio, h.barbecue.gramos) * p.barbecue +
       gramo(h.pepinillos.precio, h.pepinillos.gramos) * p.pepinillos +
       gramo(h.cebollaCrispy.precio, h.cebollaCrispy.gramos) * p.cebollaCrispy;
-    return { servicio: NOMBRES_SERVICIO[tipo], total: totalSandwich(personas, cantidad, costo) };
+    return {
+      servicio: NOMBRES_SERVICIO[tipo],
+      total: totalSandwich(personas, cantidad, costo),
+      productosPorPersona,
+      cantidadProducto: cantidad
+    };
   }
 
   if (tipo === "churrascos" || tipo === "lomitos") {
     const c = CONFIG.churrascos;
-    const cantidad = Math.ceil(personas * CONFIG.churrascosLomitosPorPersona);
+    const cantidad = Math.ceil(personas * productosPorPersona);
     const costo = unidad(c.carne.precio, c.carne.unidades) +
       unidad(g.pan.precio, g.pan.unidades) +
       gramo(g.tomate.precio, g.tomate.gramos) * p.tomate +
@@ -129,12 +147,17 @@ function calcularCotizacionServidor(tipo, personas) {
       gramo(g.ketchup.precio, g.ketchup.gramos) * p.ketchup +
       gramo(g.mayonesa.precio, g.mayonesa.gramos) * p.mayonesa +
       gramo(g.mostaza.precio, g.mostaza.gramos) * p.mostaza;
-    return { servicio: NOMBRES_SERVICIO[tipo], total: totalSandwich(personas, cantidad, costo) };
+    return {
+      servicio: NOMBRES_SERVICIO[tipo],
+      total: totalSandwich(personas, cantidad, costo),
+      productosPorPersona,
+      cantidadProducto: cantidad
+    };
   }
 
   if (tipo === "hotdogs") {
     const h = CONFIG.hotDogs;
-    const cantidad = Math.ceil(personas * CONFIG.hotDogsPorPersona);
+    const cantidad = Math.ceil(personas * productosPorPersona);
     const costo = unidad(h.salchichas.precio, h.salchichas.unidades) +
       unidad(h.pan.precio, h.pan.unidades) +
       gramo(h.palta.precio, h.palta.gramos) * p.paltaHotDog +
@@ -143,7 +166,12 @@ function calcularCotizacionServidor(tipo, personas) {
       ? h.despacho20Personas
       : personas >= 100 ? h.despachoDesde100 : h.despachoBase;
     const extras = h.mayonesaEvento + h.ketchupEvento + h.salEvento + despacho;
-    return { servicio: NOMBRES_SERVICIO[tipo], total: totalSandwich(personas, cantidad, costo, extras) };
+    return {
+      servicio: NOMBRES_SERVICIO[tipo],
+      total: totalSandwich(personas, cantidad, costo, extras),
+      productosPorPersona,
+      cantidadProducto: cantidad
+    };
   }
 
   return { servicio: null, total: null };
@@ -180,6 +208,9 @@ function validarPayload(entrada) {
   const fechaEvento = texto(entrada.fechaEvento, 10);
   const comuna = texto(entrada.comuna, 80);
   const direccion = texto(entrada.direccion, 180);
+  const productosPorPersona = tipo === "papas"
+    ? null
+    : Number(entrada.productosPorPersona ?? CONFIG.productosPorPersona.predeterminado);
 
   if (!NOMBRES_SERVICIO[tipo]) return { error: "Servicio inválido." };
   const rangoCorrecto = tipo === "papas"
@@ -187,6 +218,9 @@ function validarPayload(entrada) {
     : personas >= 20 && personas <= 100;
   if (!Number.isInteger(personas) || personas % 10 !== 0 || !rangoCorrecto) {
     return { error: "Cantidad de personas inválida." };
+  }
+  if (tipo !== "papas" && !CONFIG.productosPorPersona.opciones.includes(productosPorPersona)) {
+    return { error: "Cantidad por persona inválida." };
   }
   if (!nombre || !whatsapp || !TIPOS_EVENTO.has(tipoEvento) || !comuna || !direccion) {
     return { error: "Faltan datos obligatorios." };
@@ -198,7 +232,10 @@ function validarPayload(entrada) {
   }
 
   return {
-    datos: { tipo, personas, nombre, whatsapp, correo, tipoEvento, fechaEvento, comuna, direccion }
+    datos: {
+      tipo, personas, productosPorPersona, nombre, whatsapp, correo,
+      tipoEvento, fechaEvento, comuna, direccion
+    }
   };
 }
 
@@ -240,7 +277,7 @@ async function registrar(request, env) {
   if (validacion.error) return json({ success: false, error: validacion.error }, 400);
 
   const d = validacion.datos;
-  const cotizacion = calcularCotizacionServidor(d.tipo, d.personas);
+  const cotizacion = calcularCotizacionServidor(d.tipo, d.personas, d.productosPorPersona);
   if (!cotizacion.total) return json({ success: false, error: "No se pudo calcular la cotización." }, 400);
 
   const payload = {
@@ -258,6 +295,8 @@ async function registrar(request, env) {
     direccion: textoSeguroParaSheets(d.direccion),
     ubicacion: textoSeguroParaSheets(`${d.direccion}, ${d.comuna}`),
     servicio: cotizacion.servicio,
+    productosPorPersona: cotizacion.productosPorPersona,
+    cantidadProducto: cotizacion.cantidadProducto,
     cotizacion: cotizacion.total,
     estado: "Nueva"
   };
@@ -271,7 +310,12 @@ async function registrar(request, env) {
     });
     const resultado = await respuesta.json().catch(() => null);
     if (!respuesta.ok || !resultado?.success) throw new Error("apps-script");
-    return json({ success: true, cotizacion: cotizacion.total });
+    return json({
+      success: true,
+      cotizacion: cotizacion.total,
+      productosPorPersona: cotizacion.productosPorPersona,
+      cantidadProducto: cotizacion.cantidadProducto
+    });
   } catch {
     return json({ success: false, error: "No se pudo guardar la cotización." }, 502);
   }

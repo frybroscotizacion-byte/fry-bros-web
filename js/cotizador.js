@@ -6,10 +6,7 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
   function calcularServicio(personas) {
     const tramos = CONFIG_COTIZADOR.servicioSandwiches;
 
-    if (personas <= 50) return tramos.hasta50;
-    if (personas < 150) return tramos.hasta149;
-    if (personas < 200) return tramos.hasta199;
-    return tramos.desde200;
+    return personas <= 50 ? tramos.hasta50 : tramos.hasta100;
   }
 
   function calcularPapas(personas) {
@@ -157,6 +154,39 @@ document.addEventListener("DOMContentLoaded", () => {
     maximumFractionDigits: 0
   });
 
+  const FECHA_CL = new Intl.DateTimeFormat("es-CL", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
+
+  function fechaMinimaEvento() {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() + 7);
+    return fecha.toISOString().split("T")[0];
+  }
+
+  function fechaEnPalabras(fechaISO) {
+    return FECHA_CL.format(new Date(`${fechaISO}T12:00:00`));
+  }
+
+  async function registrarCotizacion(payload) {
+    const endpoint = CONFIG_COTIZADOR.registroEndpoint;
+    if (!endpoint) throw new Error("Falta configurar el registro");
+
+    const respuesta = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const datos = await respuesta.json().catch(() => ({}));
+    if (!respuesta.ok || !datos.success) {
+      throw new Error(datos.error || "No se pudo registrar la cotización");
+    }
+    return datos;
+  }
+
   montaje.innerHTML = `
     <section class="cotizador-frybros">
       <div class="cotizador-encabezado">
@@ -188,6 +218,56 @@ document.addEventListener("DOMContentLoaded", () => {
           </select>
         </div>
 
+        <div class="cotizador-datos">
+          <div class="campo-cotizador">
+            <label for="cotizador-nombre">Nombre y apellido</label>
+            <input id="cotizador-nombre" type="text" autocomplete="name" required
+              placeholder="Ej: Camila González">
+          </div>
+
+          <div class="campo-cotizador">
+            <label for="cotizador-whatsapp">Tu WhatsApp</label>
+            <input id="cotizador-whatsapp" type="tel" autocomplete="tel" required
+              placeholder="Ej: +56 9 1234 5678">
+          </div>
+
+          <div class="campo-cotizador">
+            <label for="cotizador-correo">Correo electrónico</label>
+            <input id="cotizador-correo" type="email" autocomplete="email"
+              placeholder="Ej: nombre@correo.cl">
+          </div>
+
+          <div class="campo-cotizador">
+            <label for="cotizador-tipo-evento">Tipo de evento</label>
+            <select id="cotizador-tipo-evento" required>
+              <option value="">Selecciona el tipo de evento</option>
+              <option value="Cumpleaños">Cumpleaños</option>
+              <option value="Evento de empresa">Evento de empresa</option>
+              <option value="Evento de colegio">Evento de colegio</option>
+              <option value="Matrimonio o celebración">Matrimonio o celebración</option>
+              <option value="Otro evento">Otro evento</option>
+            </select>
+          </div>
+
+          <div class="campo-cotizador">
+            <label for="cotizador-fecha">Fecha del evento</label>
+            <input id="cotizador-fecha" type="date" required>
+            <small class="campo-ayuda">Reserva con un mínimo de 7 días de anticipación.</small>
+          </div>
+
+          <div class="campo-cotizador">
+            <label for="cotizador-comuna">Comuna</label>
+            <input id="cotizador-comuna" type="text" autocomplete="address-level2"
+              required placeholder="Ej: Colina">
+          </div>
+
+          <div class="campo-cotizador campo-cotizador-ancho">
+            <label for="cotizador-direccion">Dirección del evento</label>
+            <input id="cotizador-direccion" type="text" autocomplete="street-address"
+              required placeholder="Calle, número y referencia">
+          </div>
+        </div>
+
         <button id="calcular-cotizacion" type="button">Calcular cotización</button>
         <div id="resultado-cotizador" class="resultado-cotizador" hidden></div>
       </div>
@@ -198,6 +278,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const personasSelect = document.querySelector("#cotizador-personas");
   const boton = document.querySelector("#calcular-cotizacion");
   const resultado = document.querySelector("#resultado-cotizador");
+  const nombreInput = document.querySelector("#cotizador-nombre");
+  const whatsappInput = document.querySelector("#cotizador-whatsapp");
+  const correoInput = document.querySelector("#cotizador-correo");
+  const tipoEventoSelect = document.querySelector("#cotizador-tipo-evento");
+  const fechaInput = document.querySelector("#cotizador-fecha");
+  const comunaInput = document.querySelector("#cotizador-comuna");
+  const direccionInput = document.querySelector("#cotizador-direccion");
+
+  fechaInput.min = fechaMinimaEvento();
 
   servicioSelect.addEventListener("change", () => {
     const servicio = servicioSelect.value;
@@ -215,8 +304,11 @@ document.addEventListener("DOMContentLoaded", () => {
     primeraOpcion.textContent = "Selecciona cantidad";
     personasSelect.appendChild(primeraOpcion);
 
-    const inicio = servicio === "papas" ? 40 : 20;
-    const fin = servicio === "papas" ? 160 : 200;
+    const limites = servicio === "papas"
+      ? CONFIG_COTIZADOR.limitesPersonas.papas
+      : CONFIG_COTIZADOR.limitesPersonas.sandwiches;
+    const inicio = limites.minimo;
+    const fin = limites.maximo;
 
     for (let personas = inicio; personas <= fin; personas += 10) {
       const opcion = document.createElement("option");
@@ -226,14 +318,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  boton.addEventListener("click", () => {
+  boton.addEventListener("click", async () => {
     const servicio = servicioSelect.value;
     const personas = Number(personasSelect.value);
+    const nombre = nombreInput.value.trim();
+    const whatsapp = whatsappInput.value.trim();
+    const correo = correoInput.value.trim();
+    const tipoEvento = tipoEventoSelect.value;
+    const fechaEvento = fechaInput.value;
+    const comuna = comunaInput.value.trim();
+    const direccion = direccionInput.value.trim();
 
-    if (!servicio || !personas) {
+    if (
+      !servicio || !personas || !nombre || !whatsapp || !tipoEvento ||
+      !fechaEvento || !comuna || !direccion
+    ) {
       resultado.hidden = false;
       resultado.innerHTML =
-        '<p class="resultado-error">Selecciona un servicio y una cantidad de personas.</p>';
+        '<p class="resultado-error">Completa todos los campos obligatorios para calcular tu cotización.</p>';
+      return;
+    }
+
+    if (fechaEvento < fechaInput.min) {
+      resultado.hidden = false;
+      resultado.innerHTML =
+        '<p class="resultado-error">La fecha debe tener al menos 7 días de anticipación.</p>';
       return;
     }
 
@@ -245,12 +354,56 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const datosCotizacion = {
+      fechaRegistro: new Date().toISOString(),
+      nombre,
+      whatsapp,
+      correo,
+      fechaEvento,
+      tipoEvento,
+      personas,
+      comuna,
+      direccion,
+      servicio: cotizacion.servicio,
+      cotizacion: cotizacion.total,
+      estado: "Nueva"
+    };
+
+    const textoBoton = boton.textContent;
+    boton.disabled = true;
+    boton.textContent = "Registrando cotización...";
+    let registroCorrecto = false;
+
+    try {
+      await registrarCotizacion(datosCotizacion);
+      registroCorrecto = true;
+    } catch (error) {
+      console.error("Fry Bros: no se pudo registrar la cotización", error);
+    } finally {
+      boton.disabled = false;
+      boton.textContent = textoBoton;
+    }
+
+    const mensajeWhatsApp = [
+      "Hola Fry Bros, quiero completar la cotización de",
+      `${cotizacion.servicio} para ${cotizacion.personas} personas,`,
+      `el día ${fechaEnPalabras(fechaEvento)},`,
+      `en ${direccion}, comuna de ${comuna}.`,
+      `Mi nombre es ${nombre} y mi WhatsApp es ${whatsapp}.`,
+      `El valor estimado fue de ${CLP.format(cotizacion.total)}.`
+    ].join(" ");
+
+    const enlaceWhatsApp =
+      `https://wa.me/${CONFIG_COTIZADOR.whatsappNegocio}?text=${encodeURIComponent(mensajeWhatsApp)}`;
+
     resultado.innerHTML = `
       <span class="resultado-label">COTIZACIÓN ESTIMADA</span>
       <h3>${CLP.format(cotizacion.total)}</h3>
       <p class="resultado-resumen">
         Servicio de <strong>${cotizacion.servicio}</strong> para
-        <strong>${cotizacion.personas} personas</strong>.
+        <strong>${cotizacion.personas} personas</strong>, el
+        <strong>${fechaEnPalabras(fechaEvento)}</strong> en
+        <strong>${comuna}</strong>.
       </p>
 
       <div class="resultado-incluye">
@@ -269,7 +422,20 @@ document.addEventListener("DOMContentLoaded", () => {
         Valor estimado sujeto a la ubicación y a los detalles finales del evento.
       </small>
 
-      <a href="#contacto" class="resultado-contactar">Continuar cotización</a>
+      <p class="resultado-registro ${registroCorrecto ? "registro-ok" : "registro-aviso"}">
+        ${registroCorrecto
+          ? "Recibimos tus datos. Ahora puedes completar la solicitud por WhatsApp."
+          : "La cotización está lista, pero no pudimos registrarla. Envíala por WhatsApp para no perderla."}
+      </p>
+
+      <a
+        href="${enlaceWhatsApp}"
+        class="resultado-contactar"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Completar por WhatsApp
+      </a>
     `;
   });
 });

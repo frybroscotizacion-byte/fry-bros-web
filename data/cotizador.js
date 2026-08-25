@@ -5,10 +5,19 @@ const CONFIG_COTIZADOR = {
   // excepto Papas Fritas, que conserva su tabla final independiente.
   servicioSandwiches: {
     hasta50: 60000,
-    hasta149: 80000,
-    hasta199: 90000,
-    desde200: 100000
+    hasta100: 80000
   },
+
+  limitesPersonas: {
+    papas: { minimo: 40, maximo: 160 },
+    sandwiches: { minimo: 20, maximo: 100 }
+  },
+
+  whatsappNegocio: "56942863211",
+
+  // Ruta segura del Worker. Las claves permanecen en Cloudflare y nunca
+  // se publican en el JavaScript que recibe el navegador.
+  registroEndpoint: "/api/cotizaciones",
 
   personasPorSandwich: 2.5,
   hotDogsPorPersona: 2,

@@ -1,15 +1,19 @@
 const CONFIG_COTIZADOR = {
   transporte: 7000,
 
-  servicioSandwiches: 60000,
+  // Tarifa de montaje, atención y cocina para todos los servicios
+  // excepto Papas Fritas, que conserva su tabla final independiente.
+  servicioSandwiches: {
+    hasta50: 60000,
+    hasta149: 80000,
+    hasta199: 90000,
+    desde200: 100000
+  },
 
   personasPorSandwich: 2.5,
+  hotDogsPorPersona: 2,
 
-  // ----------------------------------------------------
-  // PAPAS FRITAS
-  // Tabla final entregada por Fry Bros
-  // ----------------------------------------------------
-
+  // PAPAS FRITAS — tabla final entregada por Fry Bros. NO MODIFICAR.
   papas: {
     40: 103127,
     50: 108821,
@@ -26,139 +30,62 @@ const CONFIG_COTIZADOR = {
     160: 180316
   },
 
-  // ----------------------------------------------------
-  // PRECIOS GENERALES
-  // ----------------------------------------------------
-
   ingredientes: {
-    pan: {
-      precio: 3550,
-      unidades: 8
-    },
-
-    tomate: {
-      precio: 1500,
-      gramos: 1000
-    },
-
-    lechuga: {
-      precio: 1300,
-      gramosUtilesEstimados: 250
-    },
-
-    cebolla: {
-      precio: 2000,
-      gramos: 1000
-    },
-
-    ketchup: {
-      precio: 2590,
-      gramos: 900
-    },
-
-    mayonesa: {
-      precio: 3700,
-      gramos: 1000
-    },
-
-    mostaza: {
-      precio: 2700,
-      gramos: 1000
-    }
+    pan: { precio: 3550, unidades: 8 },
+    tomate: { precio: 1500, gramos: 1000 },
+    lechuga: { precio: 1300, gramosUtilesEstimados: 250 },
+    cebolla: { precio: 2000, gramos: 1000 },
+    ketchup: { precio: 2590, gramos: 900 },
+    mayonesa: { precio: 3700, gramos: 1000 },
+    mostaza: { precio: 2700, gramos: 1000 }
   },
-
-  // ----------------------------------------------------
-  // HAMBURGUESAS
-  // ----------------------------------------------------
 
   hamburguesas: {
-    carne: {
-      precio: 10910,
-      unidades: 10
-    },
-
-    queso: {
-      precio: 2000,
-      unidades: 8
-    },
-
-    barbecue: {
-      precio: 7000,
-      gramos: 1000
-    },
-
-    pepinillos: {
-      precio: 8000,
-      gramos: 1000
-    },
-
-    cebollaCrispy: {
-      precio: 1710,
-      gramos: 10
-    }
+    carne: { precio: 10910, unidades: 10 },
+    queso: { precio: 2000, unidades: 8 },
+    barbecue: { precio: 7000, gramos: 1000 },
+    pepinillos: { precio: 8000, gramos: 1000 },
+    cebollaCrispy: { precio: 1710, gramos: 10 }
   },
-
-  // ----------------------------------------------------
-  // CHURRASCOS / LOMITOS
-  // ----------------------------------------------------
 
   churrascos: {
-    carne: {
-      precio: 16300,
-      unidades: 24
-    },
-
-    palta: {
-      precio: 6000,
-      gramos: 1000
-    }
+    carne: { precio: 16300, unidades: 24 },
+    palta: { precio: 6000, gramos: 1000 }
   },
 
-  // ----------------------------------------------------
-  // ÚTILES
-  // ----------------------------------------------------
+  hotDogs: {
+    salchichas: { precio: 8461, unidades: 20 },
+    pan: { precio: 1890, unidades: 8 },
+    palta: { precio: 4490, gramos: 1000 },
+    tomate: { precio: 1990, gramos: 1000 },
+    mayonesaEvento: 2880,
+    ketchupEvento: 2990,
+    salEvento: 340,
+    despachoBase: 3000,
+    despacho20Personas: 3800,
+    despachoDesde100: 5000
+  },
 
   utiles: {
-    servilletas: {
-      precio: 700,
-      unidades: 300
-    },
-
-    guantes: {
-      precio: 5000,
-      unidades: 100,
-      usoEvento: 10
-    },
-
-    platos: {
-      precio: 1560,
-      unidades: 12
-    },
-
+    servilletas: { precio: 700, unidades: 300 },
+    guantes: { precio: 5000, unidades: 100, usoEvento: 10 },
+    platos: { precio: 1560, unidades: 12 },
     papelMetalico: 1400,
-
     gas: 15000
   },
-
-  // ----------------------------------------------------
-  // PORCIONES ESTIMADAS POR SANDWICH
-  //
-  // Estas cantidades son fáciles de modificar después.
-  // ----------------------------------------------------
 
   porciones: {
     tomate: 25,
     lechuga: 15,
     cebolla: 15,
-
     ketchup: 10,
     mayonesa: 10,
     mostaza: 5,
-
     palta: 30,
-
     barbecue: 5,
     pepinillos: 10,
-    cebollaCrispy: 5
+    cebollaCrispy: 5,
+    tomateHotDog: 50,
+    paltaHotDog: 50
   }
 };

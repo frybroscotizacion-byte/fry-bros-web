@@ -1,7 +1,151 @@
+globalThis.FRY_BROS_COTIZADOR = (() => {
+  const costoUnidad = (precio, unidades) => precio / unidades;
+  const costoGramo = (precio, gramos) => precio / gramos;
+  const redondearPrecio = (numero) => Math.ceil(numero / 1000) * 1000;
+
+  function calcularServicio(personas) {
+    const tramos = CONFIG_COTIZADOR.servicioSandwiches;
+
+    if (personas <= 50) return tramos.hasta50;
+    if (personas < 150) return tramos.hasta149;
+    if (personas < 200) return tramos.hasta199;
+    return tramos.desde200;
+  }
+
+  function calcularPapas(personas) {
+    const total = CONFIG_COTIZADOR.papas[personas];
+    if (!total) {
+      return { error: "Las Papas Fritas se cotizan entre 40 y 160 personas, en intervalos de 10." };
+    }
+    return {
+      servicio: "Papas Fritas",
+      personas,
+      cantidadProducto: null,
+      costoIngredientes: null,
+      costoUtiles: null,
+      servicioEvento: null,
+      transporte: null,
+      total,
+      presentacion: "Papas fritas servidas en sobres individuales."
+    };
+  }
+
+  function calcularUtiles(personas) {
+    const utiles = CONFIG_COTIZADOR.utiles;
+    const costoServilletas =
+      Math.ceil(personas / utiles.servilletas.unidades) * utiles.servilletas.precio;
+    const costoPlatos =
+      Math.ceil(personas / utiles.platos.unidades) * utiles.platos.precio;
+    const costoGuantes =
+      costoUnidad(utiles.guantes.precio, utiles.guantes.unidades) * utiles.guantes.usoEvento;
+
+    return costoServilletas + costoPlatos + costoGuantes +
+      utiles.papelMetalico + utiles.gas;
+  }
+
+  function baseSandwich(personas, nombre, cantidad, costoPorUnidad, extras = 0) {
+    const costoIngredientes = costoPorUnidad * cantidad + extras;
+    const costoUtiles = calcularUtiles(personas);
+    const servicioEvento = calcularServicio(personas);
+    const transporte = CONFIG_COTIZADOR.transporte;
+    const total = redondearPrecio(
+      costoIngredientes + costoUtiles + servicioEvento + transporte
+    );
+
+    return {
+      servicio: nombre,
+      personas,
+      cantidadProducto: cantidad,
+      costoIngredientes,
+      costoUtiles,
+      servicioEvento,
+      transporte,
+      total,
+      presentacion: "Sándwiches servidos en platos."
+    };
+  }
+
+  function calcularHamburguesas(personas) {
+    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.personasPorSandwich);
+    const g = CONFIG_COTIZADOR.ingredientes;
+    const h = CONFIG_COTIZADOR.hamburguesas;
+    const p = CONFIG_COTIZADOR.porciones;
+
+    const costoPorUnidad =
+      costoUnidad(h.carne.precio, h.carne.unidades) +
+      costoUnidad(g.pan.precio, g.pan.unidades) +
+      costoUnidad(h.queso.precio, h.queso.unidades) +
+      costoGramo(g.tomate.precio, g.tomate.gramos) * p.tomate +
+      costoGramo(g.lechuga.precio, g.lechuga.gramosUtilesEstimados) * p.lechuga +
+      costoGramo(g.cebolla.precio, g.cebolla.gramos) * p.cebolla +
+      costoGramo(g.ketchup.precio, g.ketchup.gramos) * p.ketchup +
+      costoGramo(g.mayonesa.precio, g.mayonesa.gramos) * p.mayonesa +
+      costoGramo(g.mostaza.precio, g.mostaza.gramos) * p.mostaza +
+      costoGramo(h.barbecue.precio, h.barbecue.gramos) * p.barbecue +
+      costoGramo(h.pepinillos.precio, h.pepinillos.gramos) * p.pepinillos +
+      costoGramo(h.cebollaCrispy.precio, h.cebollaCrispy.gramos) * p.cebollaCrispy;
+
+    return baseSandwich(personas, "Hamburguesas", cantidad, costoPorUnidad);
+  }
+
+  function calcularChurrasco(personas, nombre) {
+    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.personasPorSandwich);
+    const g = CONFIG_COTIZADOR.ingredientes;
+    const c = CONFIG_COTIZADOR.churrascos;
+    const p = CONFIG_COTIZADOR.porciones;
+
+    const costoPorUnidad =
+      costoUnidad(c.carne.precio, c.carne.unidades) +
+      costoUnidad(g.pan.precio, g.pan.unidades) +
+      costoGramo(g.tomate.precio, g.tomate.gramos) * p.tomate +
+      costoGramo(g.lechuga.precio, g.lechuga.gramosUtilesEstimados) * p.lechuga +
+      costoGramo(g.cebolla.precio, g.cebolla.gramos) * p.cebolla +
+      costoGramo(c.palta.precio, c.palta.gramos) * p.palta +
+      costoGramo(g.ketchup.precio, g.ketchup.gramos) * p.ketchup +
+      costoGramo(g.mayonesa.precio, g.mayonesa.gramos) * p.mayonesa +
+      costoGramo(g.mostaza.precio, g.mostaza.gramos) * p.mostaza;
+
+    return baseSandwich(personas, nombre, cantidad, costoPorUnidad);
+  }
+
+  function calcularHotDogs(personas) {
+    const cantidad = Math.ceil(personas * CONFIG_COTIZADOR.hotDogsPorPersona);
+    const h = CONFIG_COTIZADOR.hotDogs;
+    const p = CONFIG_COTIZADOR.porciones;
+
+    const costoPorUnidad =
+      costoUnidad(h.salchichas.precio, h.salchichas.unidades) +
+      costoUnidad(h.pan.precio, h.pan.unidades) +
+      costoGramo(h.palta.precio, h.palta.gramos) * p.paltaHotDog +
+      costoGramo(h.tomate.precio, h.tomate.gramos) * p.tomateHotDog;
+
+    const despacho =
+      personas === 20
+        ? h.despacho20Personas
+        : personas >= 100
+          ? h.despachoDesde100
+          : h.despachoBase;
+
+    const extras =
+      h.mayonesaEvento + h.ketchupEvento + h.salEvento + despacho;
+
+    return baseSandwich(personas, "Hot Dogs", cantidad, costoPorUnidad, extras);
+  }
+
+  function calcular(tipo, personas) {
+    if (tipo === "papas") return calcularPapas(personas);
+    if (tipo === "hamburguesas") return calcularHamburguesas(personas);
+    if (tipo === "hotdogs") return calcularHotDogs(personas);
+    if (tipo === "churrascos") return calcularChurrasco(personas, "Churrascos");
+    if (tipo === "lomitos") return calcularChurrasco(personas, "Lomitos");
+    return { error: "Selecciona un servicio válido." };
+  }
+
+  return { calcular, calcularServicio };
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
-
   const montaje = document.querySelector("#cotizar");
-
   if (!montaje) {
     console.error("Fry Bros: falta #cotizar en index.html");
     return;
@@ -13,841 +157,119 @@ document.addEventListener("DOMContentLoaded", () => {
     maximumFractionDigits: 0
   });
 
-
-  // =====================================================
-  // FUNCIONES GENERALES
-  // =====================================================
-
-  function costoUnidad(precio, unidades) {
-    return precio / unidades;
-  }
-
-
-  function costoGramo(precio, gramos) {
-    return precio / gramos;
-  }
-
-
-  function redondearPrecio(numero) {
-    /*
-      Redondeamos hacia arriba a $1.000
-      para entregar precios comerciales más limpios.
-
-      Ejemplo:
-      $183.241 → $184.000
-    */
-
-    return Math.ceil(numero / 1000) * 1000;
-  }
-
-
-  function calcularServicio(personas) {
-
-    return CONFIG_COTIZADOR.servicioSandwiches;
-
-  }
-
-
-  // =====================================================
-  // PAPAS FRITAS
-  // =====================================================
-
-  function calcularPapas(personas) {
-
-    const tabla = CONFIG_COTIZADOR.papas;
-
-    if (!tabla[personas]) {
-
-      return {
-        error:
-          "Las Papas Fritas se cotizan entre 40 y 160 personas, en intervalos de 10."
-      };
-
-    }
-
-    return {
-      servicio: "Papas Fritas",
-      personas,
-      cantidadProducto: null,
-      costoIngredientes: null,
-      costoUtiles: null,
-      servicioEvento: null,
-      transporte: null,
-
-      total: tabla[personas]
-    };
-
-  }
-
-
-  // =====================================================
-  // ÚTILES PARA SANDWICHES
-  // =====================================================
-
-  function calcularUtiles(personas) {
-
-    const utiles = CONFIG_COTIZADOR.utiles;
-
-
-    const paquetesServilletas =
-      Math.ceil(
-        personas /
-        utiles.servilletas.unidades
-      );
-
-
-    const costoServilletas =
-      paquetesServilletas *
-      utiles.servilletas.precio;
-
-
-    const paquetesPlatos =
-      Math.ceil(
-        personas /
-        utiles.platos.unidades
-      );
-
-
-    const costoPlatos =
-      paquetesPlatos *
-      utiles.platos.precio;
-
-
-    const costoGuantes =
-      costoUnidad(
-        utiles.guantes.precio,
-        utiles.guantes.unidades
-      ) *
-      utiles.guantes.usoEvento;
-
-
-    return (
-      costoServilletas +
-      costoPlatos +
-      costoGuantes +
-      utiles.papelMetalico +
-      utiles.gas
-    );
-
-  }
-
-
-  // =====================================================
-  // HAMBURGUESAS
-  // =====================================================
-
-  function calcularHamburguesas(personas) {
-
-    const cantidad =
-      Math.ceil(
-        personas *
-        CONFIG_COTIZADOR.personasPorSandwich
-      );
-
-
-    const generales =
-      CONFIG_COTIZADOR.ingredientes;
-
-    const hamburguesa =
-      CONFIG_COTIZADOR.hamburguesas;
-
-    const porcion =
-      CONFIG_COTIZADOR.porciones;
-
-
-    const carne =
-      costoUnidad(
-        hamburguesa.carne.precio,
-        hamburguesa.carne.unidades
-      );
-
-
-    const pan =
-      costoUnidad(
-        generales.pan.precio,
-        generales.pan.unidades
-      );
-
-
-    const queso =
-      costoUnidad(
-        hamburguesa.queso.precio,
-        hamburguesa.queso.unidades
-      );
-
-
-    const tomate =
-      costoGramo(
-        generales.tomate.precio,
-        generales.tomate.gramos
-      ) *
-      porcion.tomate;
-
-
-    const lechuga =
-      costoGramo(
-        generales.lechuga.precio,
-        generales.lechuga.gramosUtilesEstimados
-      ) *
-      porcion.lechuga;
-
-
-    const cebolla =
-      costoGramo(
-        generales.cebolla.precio,
-        generales.cebolla.gramos
-      ) *
-      porcion.cebolla;
-
-
-    const ketchup =
-      costoGramo(
-        generales.ketchup.precio,
-        generales.ketchup.gramos
-      ) *
-      porcion.ketchup;
-
-
-    const mayo =
-      costoGramo(
-        generales.mayonesa.precio,
-        generales.mayonesa.gramos
-      ) *
-      porcion.mayonesa;
-
-
-    const mostaza =
-      costoGramo(
-        generales.mostaza.precio,
-        generales.mostaza.gramos
-      ) *
-      porcion.mostaza;
-
-
-    const barbecue =
-      costoGramo(
-        hamburguesa.barbecue.precio,
-        hamburguesa.barbecue.gramos
-      ) *
-      porcion.barbecue;
-
-
-    const pepinillos =
-      costoGramo(
-        hamburguesa.pepinillos.precio,
-        hamburguesa.pepinillos.gramos
-      ) *
-      porcion.pepinillos;
-
-
-    const cebollaCrispy =
-      costoGramo(
-        hamburguesa.cebollaCrispy.precio,
-        hamburguesa.cebollaCrispy.gramos
-      ) *
-      porcion.cebollaCrispy;
-
-
-    const costoPorHamburguesa =
-      carne +
-      pan +
-      queso +
-      tomate +
-      lechuga +
-      cebolla +
-      ketchup +
-      mayo +
-      mostaza +
-      barbecue +
-      pepinillos +
-      cebollaCrispy;
-
-
-    const costoIngredientes =
-      costoPorHamburguesa *
-      cantidad;
-
-
-    const costoUtiles =
-      calcularUtiles(personas);
-
-
-    const servicio =
-      calcularServicio(personas);
-
-
-    const transporte =
-      CONFIG_COTIZADOR.transporte;
-
-
-    const total =
-      redondearPrecio(
-        costoIngredientes +
-        costoUtiles +
-        servicio +
-        transporte
-      );
-
-
-    return {
-
-      servicio: "Hamburguesas",
-
-      personas,
-
-      cantidadProducto: cantidad,
-
-      costoIngredientes,
-
-      costoUtiles,
-
-      servicioEvento: servicio,
-
-      transporte,
-
-      total
-    };
-
-  }
-
-
-  // =====================================================
-  // CHURRASCOS / LOMITOS
-  // =====================================================
-
-  function calcularChurrasco(personas, nombre) {
-
-    const cantidad =
-      Math.ceil(
-        personas *
-        CONFIG_COTIZADOR.personasPorSandwich
-      );
-
-
-    const generales =
-      CONFIG_COTIZADOR.ingredientes;
-
-    const churrasco =
-      CONFIG_COTIZADOR.churrascos;
-
-    const porcion =
-      CONFIG_COTIZADOR.porciones;
-
-
-    const carne =
-      costoUnidad(
-        churrasco.carne.precio,
-        churrasco.carne.unidades
-      );
-
-
-    const pan =
-      costoUnidad(
-        generales.pan.precio,
-        generales.pan.unidades
-      );
-
-
-    const tomate =
-      costoGramo(
-        generales.tomate.precio,
-        generales.tomate.gramos
-      ) *
-      porcion.tomate;
-
-
-    const lechuga =
-      costoGramo(
-        generales.lechuga.precio,
-        generales.lechuga.gramosUtilesEstimados
-      ) *
-      porcion.lechuga;
-
-
-    const cebolla =
-      costoGramo(
-        generales.cebolla.precio,
-        generales.cebolla.gramos
-      ) *
-      porcion.cebolla;
-
-
-    const palta =
-      costoGramo(
-        churrasco.palta.precio,
-        churrasco.palta.gramos
-      ) *
-      porcion.palta;
-
-
-    const ketchup =
-      costoGramo(
-        generales.ketchup.precio,
-        generales.ketchup.gramos
-      ) *
-      porcion.ketchup;
-
-
-    const mayo =
-      costoGramo(
-        generales.mayonesa.precio,
-        generales.mayonesa.gramos
-      ) *
-      porcion.mayonesa;
-
-
-    const mostaza =
-      costoGramo(
-        generales.mostaza.precio,
-        generales.mostaza.gramos
-      ) *
-      porcion.mostaza;
-
-
-    const costoPorSandwich =
-      carne +
-      pan +
-      tomate +
-      lechuga +
-      cebolla +
-      palta +
-      ketchup +
-      mayo +
-      mostaza;
-
-
-    const costoIngredientes =
-      costoPorSandwich *
-      cantidad;
-
-
-    const costoUtiles =
-      calcularUtiles(personas);
-
-
-    const servicio =
-      calcularServicio(personas);
-
-
-    const transporte =
-      CONFIG_COTIZADOR.transporte;
-
-
-    const total =
-      redondearPrecio(
-        costoIngredientes +
-        costoUtiles +
-        servicio +
-        transporte
-      );
-
-
-    return {
-
-      servicio: nombre,
-
-      personas,
-
-      cantidadProducto: cantidad,
-
-      costoIngredientes,
-
-      costoUtiles,
-
-      servicioEvento: servicio,
-
-      transporte,
-
-      total
-    };
-
-  }
-
-
-  // =====================================================
-  // HOT DOGS
-  // =====================================================
-
-  function calcularHotDogs(personas) {
-
-    /*
-      IMPORTANTE:
-
-      Dejamos el servicio dentro del cotizador,
-      pero todavía falta incorporar su tabla exacta
-      de ingredientes/precios.
-
-      Así evitamos mostrar al cliente una cifra inventada.
-    */
-
-    return {
-      error:
-        "La cotización automática de Hot Dogs estará disponible próximamente."
-    };
-
-  }
-
-
-  // =====================================================
-  // INTERFAZ
-  // =====================================================
-
   montaje.innerHTML = `
-
     <section class="cotizador-frybros">
-
       <div class="cotizador-encabezado">
-
-        <span class="cotizador-etiqueta">
-          COTIZA TU EVENTO
-        </span>
-
-        <h2>
-          Calcula tu evento
-        </h2>
-
+        <span class="cotizador-etiqueta">COTIZA TU EVENTO</span>
+        <h2>Una experiencia preparada para ti</h2>
         <p>
-          Selecciona el servicio y la cantidad
-          aproximada de invitados.
+          Elige tu servicio y la cantidad de invitados. Nosotros nos encargamos
+          del montaje, la cocina y cada detalle de la atención.
         </p>
-
       </div>
-
 
       <div class="cotizador-panel">
-
-
         <div class="campo-cotizador">
-
-          <label for="cotizador-servicio">
-            Servicio
-          </label>
-
+          <label for="cotizador-servicio">Servicio</label>
           <select id="cotizador-servicio">
-
-            <option value="">
-              Selecciona un servicio
-            </option>
-
-            <option value="papas">
-              Papas Fritas
-            </option>
-
-            <option value="hamburguesas">
-              Hamburguesas
-            </option>
-
-            <option value="hotdogs">
-              Hot Dogs
-            </option>
-
-            <option value="churrascos">
-              Churrascos
-            </option>
-
-            <option value="lomitos">
-              Lomitos
-            </option>
-
+            <option value="">Selecciona un servicio</option>
+            <option value="papas">Papas Fritas</option>
+            <option value="hamburguesas">Hamburguesas</option>
+            <option value="hotdogs">Hot Dogs</option>
+            <option value="churrascos">Churrascos</option>
+            <option value="lomitos">Lomitos</option>
           </select>
-
         </div>
-
 
         <div class="campo-cotizador">
-
-          <label for="cotizador-personas">
-            Cantidad de personas
-          </label>
-
-          <select
-            id="cotizador-personas"
-            disabled
-          >
-
-            <option value="">
-              Primero selecciona un servicio
-            </option>
-
+          <label for="cotizador-personas">Cantidad de personas</label>
+          <select id="cotizador-personas" disabled>
+            <option value="">Primero selecciona un servicio</option>
           </select>
-
         </div>
 
-
-        <button
-          id="calcular-cotizacion"
-          type="button"
-        >
-          Calcular cotización
-        </button>
-
-
-        <div
-          id="resultado-cotizador"
-          class="resultado-cotizador"
-          hidden
-        >
-        </div>
-
+        <button id="calcular-cotizacion" type="button">Calcular cotización</button>
+        <div id="resultado-cotizador" class="resultado-cotizador" hidden></div>
       </div>
-
     </section>
-
   `;
 
+  const servicioSelect = document.querySelector("#cotizador-servicio");
+  const personasSelect = document.querySelector("#cotizador-personas");
+  const boton = document.querySelector("#calcular-cotizacion");
+  const resultado = document.querySelector("#resultado-cotizador");
 
-  const servicioSelect =
-    document.querySelector(
-      "#cotizador-servicio"
-    );
+  servicioSelect.addEventListener("change", () => {
+    const servicio = servicioSelect.value;
+    personasSelect.innerHTML = "";
 
-
-  const personasSelect =
-    document.querySelector(
-      "#cotizador-personas"
-    );
-
-
-  const boton =
-    document.querySelector(
-      "#calcular-cotizacion"
-    );
-
-
-  const resultado =
-    document.querySelector(
-      "#resultado-cotizador"
-    );
-
-
-  // =====================================================
-  // GENERAR CANTIDADES
-  // =====================================================
-
-  servicioSelect.addEventListener(
-    "change",
-    () => {
-
-      const servicio =
-        servicioSelect.value;
-
-
-      personasSelect.innerHTML = "";
-
-
-      if (!servicio) {
-
-        personasSelect.disabled = true;
-
-        personasSelect.innerHTML = `
-          <option>
-            Primero selecciona un servicio
-          </option>
-        `;
-
-        return;
-      }
-
-
-      personasSelect.disabled = false;
-
-
-      const primeraOpcion =
-        document.createElement("option");
-
-
-      primeraOpcion.value = "";
-
-      primeraOpcion.textContent =
-        "Selecciona cantidad";
-
-
-      personasSelect.appendChild(
-        primeraOpcion
-      );
-
-
-      let inicio = 20;
-      let fin = 160;
-
-
-      if (servicio === "papas") {
-
-        inicio = 40;
-
-      }
-
-
-      for (
-        let personas = inicio;
-        personas <= fin;
-        personas += 10
-      ) {
-
-        const opcion =
-          document.createElement("option");
-
-
-        opcion.value =
-          personas;
-
-
-        opcion.textContent =
-          `${personas} personas`;
-
-
-        personasSelect.appendChild(
-          opcion
-        );
-
-      }
-
+    if (!servicio) {
+      personasSelect.disabled = true;
+      personasSelect.innerHTML = "<option>Primero selecciona un servicio</option>";
+      return;
     }
-  );
 
+    personasSelect.disabled = false;
+    const primeraOpcion = document.createElement("option");
+    primeraOpcion.value = "";
+    primeraOpcion.textContent = "Selecciona cantidad";
+    personasSelect.appendChild(primeraOpcion);
 
-  // =====================================================
-  // CALCULAR
-  // =====================================================
+    const inicio = servicio === "papas" ? 40 : 20;
+    const fin = servicio === "papas" ? 160 : 200;
 
-  boton.addEventListener(
-    "click",
-    () => {
+    for (let personas = inicio; personas <= fin; personas += 10) {
+      const opcion = document.createElement("option");
+      opcion.value = personas;
+      opcion.textContent = `${personas} personas`;
+      personasSelect.appendChild(opcion);
+    }
+  });
 
-      const servicio =
-        servicioSelect.value;
+  boton.addEventListener("click", () => {
+    const servicio = servicioSelect.value;
+    const personas = Number(personasSelect.value);
 
-
-      const personas =
-        Number(
-          personasSelect.value
-        );
-
-
-      if (!servicio || !personas) {
-
-        resultado.hidden = false;
-
-        resultado.innerHTML = `
-          <p class="resultado-error">
-            Selecciona un servicio y
-            una cantidad de personas.
-          </p>
-        `;
-
-        return;
-
-      }
-
-
-      let cotizacion;
-
-
-      if (servicio === "papas") {
-
-        cotizacion =
-          calcularPapas(personas);
-
-      }
-
-
-      if (servicio === "hamburguesas") {
-
-        cotizacion =
-          calcularHamburguesas(personas);
-
-      }
-
-
-      if (servicio === "hotdogs") {
-
-        cotizacion =
-          calcularHotDogs(personas);
-
-      }
-
-
-      if (servicio === "churrascos") {
-
-        cotizacion =
-          calcularChurrasco(
-            personas,
-            "Churrascos"
-          );
-
-      }
-
-
-      if (servicio === "lomitos") {
-
-        cotizacion =
-          calcularChurrasco(
-            personas,
-            "Lomitos"
-          );
-
-      }
-
-
+    if (!servicio || !personas) {
       resultado.hidden = false;
-
-
-      if (cotizacion.error) {
-
-        resultado.innerHTML = `
-          <p class="resultado-error">
-            ${cotizacion.error}
-          </p>
-        `;
-
-        return;
-
-      }
-
-
-      resultado.innerHTML = `
-
-        <span class="resultado-label">
-          COTIZACIÓN ESTIMADA
-        </span>
-
-        <h3>
-          ${CLP.format(
-            cotizacion.total
-          )}
-        </h3>
-
-        <p>
-          ${cotizacion.servicio}
-          para
-          ${cotizacion.personas}
-          personas.
-        </p>
-
-        ${
-          cotizacion.cantidadProducto
-          ?
-          `
-            <small>
-              Cálculo aproximado:
-              ${cotizacion.cantidadProducto}
-              unidades.
-            </small>
-          `
-          :
-          ""
-        }
-
-        <a
-          href="#contacto"
-          class="resultado-contactar"
-        >
-          Continuar cotización
-        </a>
-
-      `;
-
+      resultado.innerHTML =
+        '<p class="resultado-error">Selecciona un servicio y una cantidad de personas.</p>';
+      return;
     }
-  );
 
+    const cotizacion = FRY_BROS_COTIZADOR.calcular(servicio, personas);
+    resultado.hidden = false;
+
+    if (cotizacion.error) {
+      resultado.innerHTML = `<p class="resultado-error">${cotizacion.error}</p>`;
+      return;
+    }
+
+    resultado.innerHTML = `
+      <span class="resultado-label">COTIZACIÓN ESTIMADA</span>
+      <h3>${CLP.format(cotizacion.total)}</h3>
+      <p class="resultado-resumen">
+        Servicio de <strong>${cotizacion.servicio}</strong> para
+        <strong>${cotizacion.personas} personas</strong>.
+      </p>
+
+      <div class="resultado-incluye">
+        <h4>Tu servicio Fry Bros incluye</h4>
+        <ul>
+          <li>Instalación del carro Fry Bros y una mesa de apoyo.</li>
+          <li>Equipo de dos o más cocineros, según el tamaño del evento.</li>
+          <li>Llegada anticipada para realizar el montaje con tranquilidad.</li>
+          <li>Preparación al momento durante el evento.</li>
+          <li>${cotizacion.presentacion}</li>
+          <li>Servilletas y una selección de aderezos.</li>
+        </ul>
+      </div>
+
+      <small>
+        Valor estimado sujeto a la ubicación y a los detalles finales del evento.
+      </small>
+
+      <a href="#contacto" class="resultado-contactar">Continuar cotización</a>
+    `;
+  });
 });

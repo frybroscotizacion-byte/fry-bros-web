@@ -24,21 +24,18 @@ const CONFIG_COTIZADOR = {
     opciones: [1, 1.5, 2, 2.5, 3]
   },
 
-  // PAPAS FRITAS — tabla final entregada por Fry Bros. NO MODIFICAR.
+  // PAPAS FRITAS — cálculo continuo con servicio fijo de $80.000.
   papas: {
-    40: 103127,
-    50: 108821,
-    60: 109325,
-    70: 125019,
-    80: 125523,
-    90: 126027,
-    100: 141722,
-    110: 142226,
-    120: 147920,
-    130: 168424,
-    140: 174118,
-    150: 174622,
-    160: 180316
+    gramosPorPersona: 110,
+    bolsa: { precio: 5190, gramos: 2500 },
+    sobresPorPersona: 1.5,
+    precioSobre: 33.61,
+    aceiteEvento: 25100,
+    salEvento: 340,
+    servilletasEvento: 700,
+    gasEvento: 15000,
+    ketchupEvento: 2590,
+    servicioEvento: 80000
   },
 
   ingredientes: {

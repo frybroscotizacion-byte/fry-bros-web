@@ -16,18 +16,27 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
   }
 
   function calcularPapas(personas) {
-    const total = CONFIG_COTIZADOR.papas[personas];
-    if (!total) {
-      return { error: "Las Papas Fritas se cotizan entre 40 y 160 personas, en intervalos de 10." };
+    const limites = CONFIG_COTIZADOR.limitesPersonas.papas;
+    if (!Number.isInteger(personas) || personas < limites.minimo || personas > limites.maximo) {
+      return { error: "Las Papas Fritas se cotizan entre 40 y 160 personas." };
     }
+    const papas = CONFIG_COTIZADOR.papas;
+    const bolsas = Math.ceil(personas * papas.gramosPorPersona / papas.bolsa.gramos);
+    const costoIngredientes = bolsas * papas.bolsa.precio;
+    const costoUtiles = personas * papas.sobresPorPersona * papas.precioSobre +
+      papas.aceiteEvento + papas.salEvento + papas.servilletasEvento +
+      papas.gasEvento + papas.ketchupEvento;
+    const servicioEvento = papas.servicioEvento;
+    const transporte = CONFIG_COTIZADOR.transporte;
+    const total = Math.round(costoIngredientes + costoUtiles + servicioEvento + transporte);
     return {
       servicio: "Papas Fritas",
       personas,
       cantidadProducto: null,
-      costoIngredientes: null,
-      costoUtiles: null,
-      servicioEvento: null,
-      transporte: null,
+      costoIngredientes,
+      costoUtiles,
+      servicioEvento,
+      transporte,
       total,
       presentacion: "Papas fritas servidas en sobres individuales."
     };
@@ -243,9 +252,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         <div class="campo-cotizador">
           <label for="cotizador-personas">Cantidad de personas</label>
-          <select id="cotizador-personas" disabled>
-            <option value="">Primero selecciona un servicio</option>
-          </select>
+          <input id="cotizador-personas" type="number" inputmode="numeric"
+            step="1" disabled placeholder="Primero selecciona un servicio">
+          <small id="ayuda-cotizador-personas" class="campo-ayuda">
+            Selecciona un servicio para ver el rango permitido.
+          </small>
         </div>
 
         <div class="campo-cotizador" id="campo-productos-por-persona">
@@ -315,7 +326,8 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
 
   const servicioSelect = document.querySelector("#cotizador-servicio");
-  const personasSelect = document.querySelector("#cotizador-personas");
+  const personasInput = document.querySelector("#cotizador-personas");
+  const ayudaPersonas = document.querySelector("#ayuda-cotizador-personas");
   const productosPorPersonaSelect = document.querySelector("#cotizador-productos-por-persona");
   const boton = document.querySelector("#calcular-cotizacion");
   const resultado = document.querySelector("#resultado-cotizador");
@@ -331,12 +343,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   servicioSelect.addEventListener("change", () => {
     const servicio = servicioSelect.value;
-    personasSelect.innerHTML = "";
+    personasInput.value = "";
     productosPorPersonaSelect.innerHTML = "";
 
     if (!servicio) {
-      personasSelect.disabled = true;
-      personasSelect.innerHTML = "<option>Primero selecciona un servicio</option>";
+      personasInput.disabled = true;
+      personasInput.removeAttribute("min");
+      personasInput.removeAttribute("max");
+      personasInput.placeholder = "Primero selecciona un servicio";
+      ayudaPersonas.textContent = "Selecciona un servicio para ver el rango permitido.";
       productosPorPersonaSelect.disabled = true;
       productosPorPersonaSelect.innerHTML = "<option>Primero selecciona un servicio</option>";
       return;
@@ -356,24 +371,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    personasSelect.disabled = false;
-    const primeraOpcion = document.createElement("option");
-    primeraOpcion.value = "";
-    primeraOpcion.textContent = "Selecciona cantidad";
-    personasSelect.appendChild(primeraOpcion);
-
     const limites = servicio === "papas"
       ? CONFIG_COTIZADOR.limitesPersonas.papas
       : CONFIG_COTIZADOR.limitesPersonas.sandwiches;
-    const inicio = limites.minimo;
-    const fin = limites.maximo;
-
-    for (let personas = inicio; personas <= fin; personas += 10) {
-      const opcion = document.createElement("option");
-      opcion.value = personas;
-      opcion.textContent = `${personas} personas`;
-      personasSelect.appendChild(opcion);
-    }
+    personasInput.disabled = false;
+    personasInput.min = limites.minimo;
+    personasInput.max = limites.maximo;
+    personasInput.placeholder = `Ej: ${limites.minimo + 15}`;
+    ayudaPersonas.textContent = `Ingresa un número exacto entre ${limites.minimo} y ${limites.maximo} personas.`;
   });
 
   const servicioSolicitado = new URLSearchParams(window.location.search).get("servicio");
@@ -385,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   boton.addEventListener("click", async () => {
     const servicio = servicioSelect.value;
-    const personas = Number(personasSelect.value);
+    const personas = Number(personasInput.value);
     const productosPorPersona = servicio === "papas"
       ? null
       : Number(productosPorPersonaSelect.value);
@@ -405,6 +410,16 @@ document.addEventListener("DOMContentLoaded", () => {
       resultado.hidden = false;
       resultado.innerHTML =
         '<p class="resultado-error">Completa todos los campos obligatorios para calcular tu cotización.</p>';
+      return;
+    }
+
+    const limites = servicio === "papas"
+      ? CONFIG_COTIZADOR.limitesPersonas.papas
+      : CONFIG_COTIZADOR.limitesPersonas.sandwiches;
+    if (!Number.isInteger(personas) || personas < limites.minimo || personas > limites.maximo) {
+      resultado.hidden = false;
+      resultado.innerHTML = `<p class="resultado-error">La cantidad debe ser un número entero entre ${limites.minimo} y ${limites.maximo} personas para este servicio.</p>`;
+      personasInput.focus();
       return;
     }
 

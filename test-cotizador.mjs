@@ -36,12 +36,17 @@ for (const [people, expected] of tiers) {
 }
 
 const potatoExpected = {
-  40: 103127, 50: 108821, 60: 109325, 70: 125019, 80: 125523,
-  90: 126027, 100: 141722, 110: 142226, 120: 147920,
+  40: 143127, 50: 148821, 60: 149325, 70: 155019, 80: 155523,
+  90: 156027, 100: 161722, 110: 162226, 120: 167920,
   130: 168424, 140: 174118, 150: 174622, 160: 180316
 };
 for (const [people, expected] of Object.entries(potatoExpected)) {
   assert.equal(calculator.calcular("papas", Number(people)).total, expected);
+}
+for (const people of [41, 57, 99, 137, 159]) {
+  const quote = calculator.calcular("papas", people);
+  assert.equal(quote.servicioEvento, 80000);
+  assert.equal(calcularCotizacionServidor("papas", people).total, quote.total);
 }
 
 for (const type of ["hamburguesas", "hotdogs", "churrascos", "lomitos"]) {
@@ -95,9 +100,12 @@ const payloadValido = validarPayload({
 assert.ok(payloadValido.datos, "El Worker debe aceptar una cotización válida");
 assert.equal(payloadValido.datos.productosPorPersona, 2.5);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 110 }).error);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 37 }).datos);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "papas", personas: 73 }).datos);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", productosPorPersona: 4 }).error);
 assert.match(app, /id="cotizador-productos-por-persona"/);
 assert.match(app, /productosPorPersona/);
+assert.match(app, /type="number"/);
 
 const paginasServicio = [
   ["pages/papas-fritas.html", "papas-fritas"],

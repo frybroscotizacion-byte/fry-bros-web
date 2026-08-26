@@ -6,10 +6,16 @@ const CONFIG = {
     opciones: [1, 1.5, 2, 2.5, 3]
   },
   papas: {
-    40: 103127, 50: 108821, 60: 109325, 70: 125019,
-    80: 125523, 90: 126027, 100: 141722, 110: 142226,
-    120: 147920, 130: 168424, 140: 174118, 150: 174622,
-    160: 180316
+    gramosPorPersona: 110,
+    bolsa: { precio: 5190, gramos: 2500 },
+    sobresPorPersona: 1.5,
+    precioSobre: 33.61,
+    aceiteEvento: 25100,
+    salEvento: 340,
+    servilletasEvento: 700,
+    gasEvento: 15000,
+    ketchupEvento: 2590,
+    servicioEvento: 80000
   },
   ingredientes: {
     pan: { precio: 3550, unidades: 8 },
@@ -94,9 +100,15 @@ function totalSandwich(personas, cantidad, costoPorUnidad, extras = 0) {
 
 function calcularCotizacionServidor(tipo, personas, valorProductosPorPersona) {
   if (tipo === "papas") {
+    const papas = CONFIG.papas;
+    const bolsas = Math.ceil(personas * papas.gramosPorPersona / papas.bolsa.gramos);
+    const ingredientes = bolsas * papas.bolsa.precio;
+    const utiles = personas * papas.sobresPorPersona * papas.precioSobre +
+      papas.aceiteEvento + papas.salEvento + papas.servilletasEvento +
+      papas.gasEvento + papas.ketchupEvento;
     return {
       servicio: NOMBRES_SERVICIO[tipo],
-      total: CONFIG.papas[personas] || null,
+      total: Math.round(ingredientes + utiles + papas.servicioEvento + CONFIG.transporte),
       productosPorPersona: null,
       cantidadProducto: null
     };
@@ -216,7 +228,7 @@ function validarPayload(entrada) {
   const rangoCorrecto = tipo === "papas"
     ? personas >= 40 && personas <= 160
     : personas >= 20 && personas <= 100;
-  if (!Number.isInteger(personas) || personas % 10 !== 0 || !rangoCorrecto) {
+  if (!Number.isInteger(personas) || !rangoCorrecto) {
     return { error: "Cantidad de personas inválida." };
   }
   if (tipo !== "papas" && !CONFIG.productosPorPersona.opciones.includes(productosPorPersona)) {

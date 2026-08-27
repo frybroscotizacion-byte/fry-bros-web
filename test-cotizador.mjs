@@ -1,72 +1,125 @@
 import fs from "node:fs";
+import vm from "node:vm";
 import assert from "node:assert/strict";
-import { calcularCotizacionServidor, construirConfigDesdeSheets } from "./worker.mjs";
+import { calcularCotizacionServidor, validarPayload } from "./worker.mjs";
 
-const i = (precio, contenido) => ({ precio, contenido, costoUnitario: precio / contenido });
-const u = (precio, contenido, costoFijoBase = 0) => ({ precio, contenido, costoFijoBase });
+const data = fs.readFileSync(new URL("./data/cotizador.js", import.meta.url), "utf8");
+const app = fs.readFileSync(new URL("./js/cotizador.js", import.meta.url), "utf8");
 
-const datos = {
-  success: true,
-  insumos: {
-    pan_sandwich: i(3550, 8), tomate_sandwich: i(1500, 1000), lechuga: i(1300, 250),
-    cebolla: i(2000, 1000), ketchup: i(2590, 900), mayonesa: i(3700, 1000),
-    mostaza: i(2700, 1000), carne_hamb: i(10910, 10), queso_cheddar: i(2000, 8),
-    barbecue: i(7000, 1000), pepinillos: i(8000, 1000), cebolla_crispy: i(1710, 10),
-    carne_churrasco: i(16300, 24), palta_churrasco: i(6000, 1000),
-    carne_lomito: i(16300, 24), salchicha_hd: i(8461, 20), pan_hd: i(1890, 8),
-    palta_hd: i(4490, 1000), tomate_hd: i(1990, 1000), papa_prefrita: i(5190, 2500)
-  },
-  utiles: {
-    servilletas: u(700, 300), platos: u(1560, 12), guantes: u(5000, 100, 500),
-    papel: u(1400, 1, 1400), gas: u(15000, 1, 15000), aceite: u(12550, 1, 25100),
-    sal: u(340, 1, 340), ketchup_papas: u(2590, 1, 2590), sobre_papas: u(33.61, 1),
-    mayo_hd: u(2880, 1, 2880), ketchup_hd: u(2990, 1, 2990), despacho_hd: u(3000, 1, 3000)
-  },
-  parametros: {
-    TRANSPORTE: 7000, SERVICIO_20_50: 60000, SERVICIO_51_100: 80000,
-    MIN_SANDWICH: 20, MAX_SANDWICH: 100, MIN_PAPAS: 40, MAX_PAPAS: 160,
-    GRAMOS_PAPAS_PERSONA: 110, SOBRES_PAPAS_PERSONA: 1.5,
-    DESPACHO_HD_20: 3800, DESPACHO_HD_30_90: 3000, DESPACHO_HD_100: 5000,
-    REDONDEO: 1000, PAPAS_SERVICIO_40_69: 40000, PAPAS_SERVICIO_70_99: 50000,
-    PAPAS_SERVICIO_100_129: 60000, PAPAS_SERVICIO_130_160: 80000
+const callbacks = {};
+const context = {
+  console,
+  Intl,
+  Math,
+  document: {
+    addEventListener(name, callback) {
+      callbacks[name] = callback;
+    }
   }
 };
+context.globalThis = context;
+vm.createContext(context);
+vm.runInContext(data + "\n" + app, context);
 
-const config = construirConfigDesdeSheets(datos);
-assert.equal(calcularCotizacionServidor("papas", 40, null, config).total, 105026.6);
-assert.equal(calcularCotizacionServidor("papas", 100, null, config).total, 143621.5);
-assert.equal(calcularCotizacionServidor("hamburguesas", 20, 2, config).total, 207000);
-assert.equal(calcularCotizacionServidor("hotdogs", 20, 2, config).total, 138000);
-assert.equal(calcularCotizacionServidor("churrascos", 20, 2, config).total, 149000);
-assert.equal(calcularCotizacionServidor("lomitos", 20, 2, config).total, 149000);
+const calculator = context.FRY_BROS_COTIZADOR;
+assert.ok(calculator, "La calculadora debe quedar disponible");
 
-const sinPapel = structuredClone(datos);
-sinPapel.utiles.papel.costoFijoBase = 0;
-const configSinPapel = construirConfigDesdeSheets(sinPapel);
-assert.equal(calcularCotizacionServidor("hamburguesas", 20, 2, configSinPapel).total, 206000);
+const tiers = [
+  [20, 60000],
+  [50, 60000],
+  [60, 80000],
+  [100, 80000]
+];
 
-const carneMasCara = structuredClone(datos);
-carneMasCara.insumos.carne_hamb.precio = 20000;
-const configCarneMasCara = construirConfigDesdeSheets(carneMasCara);
-assert.ok(
-  calcularCotizacionServidor("hamburguesas", 20, 2, configCarneMasCara).total >
-  calcularCotizacionServidor("hamburguesas", 20, 2, config).total
+for (const [people, expected] of tiers) {
+  assert.equal(calculator.calcularServicio(people), expected);
+}
+
+const potatoExpected = {
+  40: 143127, 50: 148821, 60: 149325, 70: 155019, 80: 155523,
+  90: 156027, 100: 161722, 110: 162226, 120: 167920,
+  130: 168424, 140: 174118, 150: 174622, 160: 180316
+};
+for (const [people, expected] of Object.entries(potatoExpected)) {
+  assert.equal(calculator.calcular("papas", Number(people)).total, expected);
+}
+for (const people of [41, 57, 99, 137, 159]) {
+  const quote = calculator.calcular("papas", people);
+  assert.equal(quote.servicioEvento, 80000);
+  assert.equal(calcularCotizacionServidor("papas", people).total, quote.total);
+}
+
+for (const type of ["hamburguesas", "hotdogs", "churrascos", "lomitos"]) {
+  for (const people of [20, 50, 60, 100]) {
+    const quote = calculator.calcular(type, people);
+    assert.equal(quote.personas, people);
+    assert.ok(Number.isFinite(quote.total) && quote.total > 0);
+    assert.equal(quote.total % 1000, 0);
+    assert.equal(
+      calcularCotizacionServidor(type, people).total,
+      quote.total,
+      `El Worker debe recalcular ${type} para ${people} personas`
+    );
+  }
+
+  for (const productsPerPerson of [1, 1.5, 2, 2.5, 3]) {
+    for (const people of [20, 100]) {
+      const quote = calculator.calcular(type, people, productsPerPerson);
+      const serverQuote = calcularCotizacionServidor(type, people, productsPerPerson);
+      assert.equal(quote.cantidadProducto, Math.ceil(people * productsPerPerson));
+      assert.equal(serverQuote.cantidadProducto, quote.cantidadProducto);
+      assert.equal(serverQuote.productosPorPersona, productsPerPerson);
+      assert.equal(serverQuote.total, quote.total);
+    }
+  }
+}
+
+assert.equal(
+  calculator.calcular("churrascos", 100).total,
+  calculator.calcular("lomitos", 100).total
 );
+assert.equal(calculator.calcular("hamburguesas", 20).cantidadProducto, 40);
+assert.equal(calculator.calcular("hamburguesas", 100).cantidadProducto, 200);
+assert.equal(calculator.calcular("churrascos", 20).cantidadProducto, 40);
+assert.equal(calculator.calcular("lomitos", 100).cantidadProducto, 200);
+assert.equal(calculator.calcular("hotdogs", 20).cantidadProducto, 40);
+assert.equal(calculator.calcular("hotdogs", 100).cantidadProducto, 200);
 
-console.log("Pruebas correctas: los precios cambian al modificar Sheets.");
-
-const app = fs.readFileSync(new URL("./js/cotizador.js", import.meta.url), "utf8");
+const payloadValido = validarPayload({
+  servicioId: "hamburguesas",
+  personas: 100,
+  productosPorPersona: 2.5,
+  nombre: "Cliente de prueba",
+  whatsapp: "+56 9 1234 5678",
+  correo: "cliente@example.com",
+  tipoEvento: "Cumpleaños",
+  fechaEvento: "2099-12-31",
+  comuna: "Colina",
+  direccion: "Dirección de prueba 123"
+});
+assert.ok(payloadValido.datos, "El Worker debe aceptar una cotización válida");
+assert.equal(payloadValido.datos.productosPorPersona, 2.5);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 110 }).error);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 37 }).datos);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "papas", personas: 73 }).datos);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", productosPorPersona: 4 }).error);
 assert.match(app, /id="cotizador-productos-por-persona"/);
-assert.match(app, /const registro = await registrarCotizacion/);
-assert.match(app, /No pudimos consultar los precios actualizados/);
+assert.match(app, /productosPorPersona/);
+assert.match(app, /type="number"/);
 
-for (const [ruta, id] of [
+const paginasServicio = [
   ["pages/papas-fritas.html", "papas-fritas"],
   ["pages/hamburguesas.html", "hamburguesas"],
   ["pages/hot-dogs.html", "hot-dogs"],
   ["pages/lomitos.html", "lomitos"],
   ["pages/churrascos.html", "churrascos"]
-]) {
+];
+
+for (const [ruta, id] of paginasServicio) {
   const pagina = fs.readFileSync(new URL(`./${ruta}`, import.meta.url), "utf8");
   assert.match(pagina, new RegExp(`data-servicio="${id}"`));
+  assert.match(pagina, /detalle-servicio\.css/);
+  assert.match(pagina, /detalle-servicio\.js/);
 }
+
+console.log("Pruebas correctas: cantidades variables, tramos, papas, hot dogs y sándwiches.");

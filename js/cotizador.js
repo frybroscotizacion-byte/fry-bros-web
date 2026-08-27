@@ -430,7 +430,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    let cotizacion = FRY_BROS_COTIZADOR.calcular(servicio, personas, productosPorPersona);
+    const cotizacion = FRY_BROS_COTIZADOR.calcular(servicio, personas, productosPorPersona);
     resultado.hidden = false;
 
     if (cotizacion.error) {
@@ -462,30 +462,15 @@ document.addEventListener("DOMContentLoaded", () => {
     boton.disabled = true;
     boton.textContent = "Registrando cotización...";
     let registroCorrecto = false;
-    let errorRegistro = "";
 
     try {
-      const registro = await registrarCotizacion(datosCotizacion);
-      cotizacion = {
-        ...cotizacion,
-        total: Number(registro.cotizacion),
-        productosPorPersona: registro.productosPorPersona,
-        cantidadProducto: registro.cantidadProducto
-      };
+      await registrarCotizacion(datosCotizacion);
       registroCorrecto = true;
     } catch (error) {
       console.error("Fry Bros: no se pudo registrar la cotización", error);
-      errorRegistro = error instanceof Error
-        ? error.message
-        : "No se pudo calcular la cotización.";
     } finally {
       boton.disabled = false;
       boton.textContent = textoBoton;
-    }
-
-    if (!registroCorrecto) {
-      resultado.innerHTML = `<p class="resultado-error">${errorRegistro || "No pudimos consultar los precios actualizados. Intenta nuevamente en unos minutos."}</p>`;
-      return;
     }
 
     const mensajeWhatsApp = [

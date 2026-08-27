@@ -462,6 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
     boton.disabled = true;
     boton.textContent = "Registrando cotización...";
     let registroCorrecto = false;
+    let errorRegistro = "";
 
     try {
       const registro = await registrarCotizacion(datosCotizacion);
@@ -474,13 +475,16 @@ document.addEventListener("DOMContentLoaded", () => {
       registroCorrecto = true;
     } catch (error) {
       console.error("Fry Bros: no se pudo registrar la cotización", error);
+      errorRegistro = error instanceof Error
+        ? error.message
+        : "No se pudo calcular la cotización.";
     } finally {
       boton.disabled = false;
       boton.textContent = textoBoton;
     }
 
     if (!registroCorrecto) {
-      resultado.innerHTML = '<p class="resultado-error">No pudimos consultar los precios actualizados. Intenta nuevamente en unos minutos.</p>';
+      resultado.innerHTML = `<p class="resultado-error">${errorRegistro || "No pudimos consultar los precios actualizados. Intenta nuevamente en unos minutos."}</p>`;
       return;
     }
 

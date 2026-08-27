@@ -474,10 +474,27 @@ async function registrar(request, env) {
   }
 }
 
+async function estadoPrecios(request, env) {
+  if (request.method !== "GET") {
+    return json({ success: false, error: "Método no permitido." }, 405);
+  }
+  try {
+    const config = await obtenerConfiguracion(env);
+    return json({
+      success: true,
+      origen: "Google Sheets",
+      limites: config.limites
+    });
+  } catch {
+    return json({ success: false, error: "Precios no disponibles." }, 503);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/api/cotizaciones") return registrar(request, env);
+    if (url.pathname === "/api/precios/estado") return estadoPrecios(request, env);
     return env.ASSETS.fetch(request);
   }
 };

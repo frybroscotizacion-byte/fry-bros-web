@@ -1,16 +1,15 @@
 const CONFIG_COTIZADOR = {
   transporte: 7000,
 
-  // Tarifa de montaje, atención y cocina para todos los servicios
-  // excepto Papas Fritas, que conserva su tabla final independiente.
-  servicioSandwiches: {
-    hasta50: 60000,
-    hasta100: 80000
-  },
+  // Tarifa única de montaje, atención y cocina para todos los servicios.
+  servicioEvento: 80000,
 
   limitesPersonas: {
     papas: { minimo: 40, maximo: 160 },
-    sandwiches: { minimo: 20, maximo: 100 }
+    hamburguesas: { minimo: 20, maximo: 50 },
+    hotdogs: { minimo: 20, maximo: 100 },
+    churrascos: { minimo: 20, maximo: 50 },
+    lomitos: { minimo: 20, maximo: 100 }
   },
 
   whatsappNegocio: "56942863211",

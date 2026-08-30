@@ -30,7 +30,7 @@ const DETALLES_SERVICIOS = {
       "Instalamos el carro Fry Bros, organizamos la mesa de apoyo y atendemos el flujo de invitados para que el servicio se sienta ágil, entretenido y bien coordinado."
     ],
     presentacion: "Hamburguesas servidas en platos individuales.",
-    rango: "Disponible para eventos de 20 a 100 personas",
+    rango: "Disponible para eventos de 20 a 50 personas",
     destacados: [
       ["A la plancha", "Cada hamburguesa se prepara al momento para aprovechar el calor, el aroma y todo su sabor."],
       ["Montaje completo", "Llegamos antes, instalamos nuestra estación y dejamos todo listo para comenzar a la hora acordada."],
@@ -87,7 +87,7 @@ const DETALLES_SERVICIOS = {
       "Nuestro equipo llega antes de la hora acordada, instala la estación y coordina la atención para ofrecer un servicio cercano, ordenado y con presencia."
     ],
     presentacion: "Churrascos servidos en platos individuales.",
-    rango: "Disponible para eventos de 20 a 100 personas",
+    rango: "Disponible para eventos de 20 a 50 personas",
     destacados: [
       ["Preparación a la vista", "La plancha y el movimiento del equipo convierten la cocina en parte del ambiente del evento."],
       ["Sabor completo", "Carne, pan, ingredientes frescos y aderezos se combinan en un sándwich abundante."],

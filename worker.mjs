@@ -1,6 +1,13 @@
 const CONFIG = {
   transporte: 7000,
-  tarifa: { hasta50: 60000, hasta100: 80000 },
+  servicioEvento: 80000,
+  limitesPersonas: {
+    papas: { minimo: 40, maximo: 160 },
+    hamburguesas: { minimo: 20, maximo: 50 },
+    hotdogs: { minimo: 20, maximo: 100 },
+    churrascos: { minimo: 20, maximo: 50 },
+    lomitos: { minimo: 20, maximo: 100 }
+  },
   productosPorPersona: {
     predeterminado: 2,
     opciones: [1, 1.5, 2, 2.5, 3]
@@ -94,11 +101,20 @@ function calcularUtiles(personas) {
 
 function totalSandwich(personas, cantidad, costoPorUnidad, extras = 0) {
   const ingredientes = cantidad * costoPorUnidad + extras;
-  const tarifa = personas <= 50 ? CONFIG.tarifa.hasta50 : CONFIG.tarifa.hasta100;
-  return redondear(ingredientes + calcularUtiles(personas) + tarifa + CONFIG.transporte);
+  return redondear(
+    ingredientes + calcularUtiles(personas) + CONFIG.servicioEvento + CONFIG.transporte
+  );
 }
 
 function calcularCotizacionServidor(tipo, personas, valorProductosPorPersona) {
+  const limites = CONFIG.limitesPersonas[tipo];
+  if (
+    !limites || !Number.isInteger(personas) ||
+    personas < limites.minimo || personas > limites.maximo
+  ) {
+    return { servicio: NOMBRES_SERVICIO[tipo] || null, total: null };
+  }
+
   if (tipo === "papas") {
     const papas = CONFIG.papas;
     const bolsas = Math.ceil(personas * papas.gramosPorPersona / papas.bolsa.gramos);
@@ -225,9 +241,8 @@ function validarPayload(entrada) {
     : Number(entrada.productosPorPersona ?? CONFIG.productosPorPersona.predeterminado);
 
   if (!NOMBRES_SERVICIO[tipo]) return { error: "Servicio inválido." };
-  const rangoCorrecto = tipo === "papas"
-    ? personas >= 40 && personas <= 160
-    : personas >= 20 && personas <= 100;
+  const limites = CONFIG.limitesPersonas[tipo];
+  const rangoCorrecto = personas >= limites.minimo && personas <= limites.maximo;
   if (!Number.isInteger(personas) || !rangoCorrecto) {
     return { error: "Cantidad de personas inválida." };
   }

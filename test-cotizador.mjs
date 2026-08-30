@@ -25,8 +25,8 @@ const calculator = context.FRY_BROS_COTIZADOR;
 assert.ok(calculator, "La calculadora debe quedar disponible");
 
 const tiers = [
-  [20, 60000],
-  [50, 60000],
+  [20, 80000],
+  [50, 80000],
   [60, 80000],
   [100, 80000]
 ];
@@ -49,10 +49,18 @@ for (const people of [41, 57, 99, 137, 159]) {
   assert.equal(calcularCotizacionServidor("papas", people).total, quote.total);
 }
 
-for (const type of ["hamburguesas", "hotdogs", "churrascos", "lomitos"]) {
-  for (const people of [20, 50, 60, 100]) {
+const limitesPorServicio = {
+  hamburguesas: [20, 50],
+  hotdogs: [20, 50, 60, 100],
+  churrascos: [20, 50],
+  lomitos: [20, 50, 60, 100]
+};
+
+for (const [type, cantidadesValidas] of Object.entries(limitesPorServicio)) {
+  for (const people of cantidadesValidas) {
     const quote = calculator.calcular(type, people);
     assert.equal(quote.personas, people);
+    assert.equal(quote.servicioEvento, 80000);
     assert.ok(Number.isFinite(quote.total) && quote.total > 0);
     assert.equal(quote.total % 1000, 0);
     assert.equal(
@@ -63,7 +71,7 @@ for (const type of ["hamburguesas", "hotdogs", "churrascos", "lomitos"]) {
   }
 
   for (const productsPerPerson of [1, 1.5, 2, 2.5, 3]) {
-    for (const people of [20, 100]) {
+    for (const people of [cantidadesValidas[0], cantidadesValidas.at(-1)]) {
       const quote = calculator.calcular(type, people, productsPerPerson);
       const serverQuote = calcularCotizacionServidor(type, people, productsPerPerson);
       assert.equal(quote.cantidadProducto, Math.ceil(people * productsPerPerson));
@@ -75,19 +83,21 @@ for (const type of ["hamburguesas", "hotdogs", "churrascos", "lomitos"]) {
 }
 
 assert.equal(
-  calculator.calcular("churrascos", 100).total,
-  calculator.calcular("lomitos", 100).total
+  calculator.calcular("churrascos", 50).total,
+  calculator.calcular("lomitos", 50).total
 );
 assert.equal(calculator.calcular("hamburguesas", 20).cantidadProducto, 40);
-assert.equal(calculator.calcular("hamburguesas", 100).cantidadProducto, 200);
+assert.equal(calculator.calcular("hamburguesas", 50).cantidadProducto, 100);
 assert.equal(calculator.calcular("churrascos", 20).cantidadProducto, 40);
 assert.equal(calculator.calcular("lomitos", 100).cantidadProducto, 200);
 assert.equal(calculator.calcular("hotdogs", 20).cantidadProducto, 40);
 assert.equal(calculator.calcular("hotdogs", 100).cantidadProducto, 200);
+assert.equal(calculator.calcular("hamburguesas", 35, 2).total, 318000);
+assert.equal(calculator.calcular("churrascos", 35, 2).total, 217000);
 
 const payloadValido = validarPayload({
   servicioId: "hamburguesas",
-  personas: 100,
+  personas: 50,
   productosPorPersona: 2.5,
   nombre: "Cliente de prueba",
   whatsapp: "+56 9 1234 5678",
@@ -99,10 +109,17 @@ const payloadValido = validarPayload({
 });
 assert.ok(payloadValido.datos, "El Worker debe aceptar una cotización válida");
 assert.equal(payloadValido.datos.productosPorPersona, 2.5);
-assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 110 }).error);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 51 }).error);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "churrascos", personas: 51 }).error);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 37 }).datos);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hotdogs", personas: 100 }).datos);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "lomitos", personas: 100 }).datos);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "papas", personas: 73 }).datos);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", productosPorPersona: 4 }).error);
+assert.ok(calculator.calcular("hamburguesas", 51).error);
+assert.ok(calculator.calcular("churrascos", 51).error);
+assert.equal(calcularCotizacionServidor("hamburguesas", 51).total, null);
+assert.equal(calcularCotizacionServidor("churrascos", 51).total, null);
 assert.match(app, /id="cotizador-productos-por-persona"/);
 assert.match(app, /productosPorPersona/);
 assert.match(app, /type="number"/);
@@ -122,4 +139,4 @@ for (const [ruta, id] of paginasServicio) {
   assert.match(pagina, /detalle-servicio\.js/);
 }
 
-console.log("Pruebas correctas: cantidades variables, tramos, papas, hot dogs y sándwiches.");
+console.log("Pruebas correctas: tarifa única, límites por servicio y cotizaciones seguras.");

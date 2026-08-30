@@ -9,10 +9,12 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
     return configuracion.opciones.includes(numero) ? numero : null;
   }
 
-  function calcularServicio(personas) {
-    const tramos = CONFIG_COTIZADOR.servicioSandwiches;
+  function obtenerLimites(tipo) {
+    return CONFIG_COTIZADOR.limitesPersonas[tipo] || null;
+  }
 
-    return personas <= 50 ? tramos.hasta50 : tramos.hasta100;
+  function calcularServicio() {
+    return CONFIG_COTIZADOR.servicioEvento;
   }
 
   function calcularPapas(personas) {
@@ -145,7 +147,14 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
   }
 
   function calcular(tipo, personas, valorProductosPorPersona) {
+    const limites = obtenerLimites(tipo);
+    if (!limites) return { error: "Selecciona un servicio válido." };
     if (tipo === "papas") return calcularPapas(personas);
+    if (!Number.isInteger(personas) || personas < limites.minimo || personas > limites.maximo) {
+      return {
+        error: `Este servicio se cotiza entre ${limites.minimo} y ${limites.maximo} personas.`
+      };
+    }
     const productosPorPersona = normalizarProductosPorPersona(valorProductosPorPersona);
     if (!productosPorPersona) {
       return { error: "Selecciona una cantidad válida de sándwiches o completos por persona." };
@@ -157,7 +166,7 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
     return { error: "Selecciona un servicio válido." };
   }
 
-  return { calcular, calcularServicio };
+  return { calcular, calcularServicio, obtenerLimites };
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -371,9 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    const limites = servicio === "papas"
-      ? CONFIG_COTIZADOR.limitesPersonas.papas
-      : CONFIG_COTIZADOR.limitesPersonas.sandwiches;
+    const limites = FRY_BROS_COTIZADOR.obtenerLimites(servicio);
     personasInput.disabled = false;
     personasInput.min = limites.minimo;
     personasInput.max = limites.maximo;
@@ -413,9 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const limites = servicio === "papas"
-      ? CONFIG_COTIZADOR.limitesPersonas.papas
-      : CONFIG_COTIZADOR.limitesPersonas.sandwiches;
+    const limites = FRY_BROS_COTIZADOR.obtenerLimites(servicio);
     if (!Number.isInteger(personas) || personas < limites.minimo || personas > limites.maximo) {
       resultado.hidden = false;
       resultado.innerHTML = `<p class="resultado-error">La cantidad debe ser un número entero entre ${limites.minimo} y ${limites.maximo} personas para este servicio.</p>`;

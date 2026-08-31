@@ -21,7 +21,8 @@ const DETALLES_SERVICIOS = {
   hamburguesas: {
     nombre: "Hamburguesas",
     cotizador: "hamburguesas",
-    imagen: "../images/Hamburguesa.jpeg",
+    imagen: "../images/hamburguesa-evento.jpg",
+    posicionHero: "center 52%",
     bajada: "Hamburguesas abundantes y preparadas al momento, con ingredientes frescos y una estación que se convierte en parte del evento.",
     tituloCarta: "Sabor recién salido de la plancha",
     parrafos: [
@@ -35,7 +36,24 @@ const DETALLES_SERVICIOS = {
       ["A la plancha", "Cada hamburguesa se prepara al momento para aprovechar el calor, el aroma y todo su sabor."],
       ["Montaje completo", "Llegamos antes, instalamos nuestra estación y dejamos todo listo para comenzar a la hora acordada."],
       ["Atención ordenada", "Nuestro equipo organiza la preparación y entrega para que tus invitados solo tengan que disfrutar."]
-    ]
+    ],
+    menu: {
+      documento: "../docs/menu-hamburguesas.pdf",
+      opciones: [
+        {
+          nombre: "American Bacon",
+          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, salsa BBQ y cebolla caramelizada."
+        },
+        {
+          nombre: "Italiana",
+          ingredientes: "Carne de hamburguesa, queso cheddar, tomate, lechuga, pepinillos y mayonesa Fry Bros."
+        },
+        {
+          nombre: "Special Fry Bros",
+          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, cebolla caramelizada, tomate, lechuga y mayonesa Fry Bros."
+        }
+      ]
+    }
   },
   "hot-dogs": {
     nombre: "Hot Dogs",
@@ -119,6 +137,69 @@ document.addEventListener("DOMContentLoaded", () => {
     </article>
   `).join("");
 
+  const tieneMenu = Array.isArray(servicio.menu?.opciones) && servicio.menu.opciones.length > 0;
+  const enlaceMenuHero = tieneMenu ? `
+    <a class="detalle-boton detalle-boton-secundario" href="#menu">
+      Ver menú
+    </a>
+  ` : "";
+  const enlaceMenuNav = tieneMenu ? '<a href="#menu">Menú</a>' : "";
+
+  const seccionMenu = tieneMenu ? `
+    <section class="detalle-menu" id="menu">
+      <div class="detalle-contenedor">
+        <div class="detalle-menu-encabezado">
+          <div>
+            <span class="detalle-etiqueta">ELIGE TUS FAVORITAS</span>
+            <h2>Menú de hamburguesas</h2>
+          </div>
+          <p>
+            Tres opciones preparadas al momento para que elijas la combinación
+            que mejor representa tu evento.
+          </p>
+        </div>
+
+        <div class="detalle-menu-grid">
+          ${servicio.menu.opciones.map((opcion, indice) => `
+            <article class="detalle-menu-card">
+              <span>0${indice + 1}</span>
+              <h3>${opcion.nombre}</h3>
+              <p>${opcion.ingredientes}</p>
+            </article>
+          `).join("")}
+        </div>
+
+        <div class="detalle-menu-documento">
+          <div class="detalle-menu-documento-barra">
+            <div>
+              <span class="detalle-etiqueta">MENÚ FRY BROS</span>
+              <h3>Consulta el documento completo</h3>
+            </div>
+            <div class="detalle-menu-documento-acciones">
+              <a class="detalle-boton" href="${servicio.menu.documento}" target="_blank" rel="noopener noreferrer">
+                Abrir menú en PDF
+              </a>
+              <a class="detalle-boton detalle-boton-claro" href="${servicio.menu.documento}" download="Menu-Fry-Bros-Hamburguesas.pdf">
+                Descargar
+              </a>
+            </div>
+          </div>
+          <object
+            class="detalle-menu-pdf"
+            data="${servicio.menu.documento}"
+            type="application/pdf"
+            aria-label="Menú de hamburguesas Fry Bros"
+          >
+            <p>
+              Tu navegador no puede mostrar el PDF aquí.
+              <a href="${servicio.menu.documento}" target="_blank" rel="noopener noreferrer">Abrir menú</a>
+            </p>
+          </object>
+        </div>
+      </div>
+    </section>
+  ` : "";
+
   montaje.innerHTML = `
     <header class="detalle-nav">
       <a class="detalle-marca" href="../index.html#inicio">
@@ -128,12 +209,13 @@ document.addEventListener("DOMContentLoaded", () => {
       <nav aria-label="Navegación principal">
         <a href="../index.html#inicio">Inicio</a>
         <a href="../index.html#servicios">Servicios</a>
+        ${enlaceMenuNav}
         <a href="../index.html?servicio=${servicio.cotizador}#cotizar">Cotizar</a>
       </nav>
     </header>
 
     <main>
-      <section class="detalle-hero" style="--hero-image: url('${servicio.imagen}')">
+      <section class="detalle-hero" style="--hero-image: url('${servicio.imagen}'); --hero-position: ${servicio.posicionHero || "center"}">
         <div class="detalle-hero-contenido">
           <a class="detalle-volver" href="../index.html#servicios">← Volver a servicios</a>
           <span class="detalle-etiqueta">SERVICIO FRY BROS</span>
@@ -143,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <a class="detalle-boton" href="../index.html?servicio=${servicio.cotizador}#cotizar">
               Cotizar este servicio
             </a>
+            ${enlaceMenuHero}
             <a class="detalle-boton detalle-boton-secundario"
                href="https://wa.me/56942863211?text=${consulta}"
                target="_blank" rel="noopener noreferrer">
@@ -174,6 +257,8 @@ document.addEventListener("DOMContentLoaded", () => {
           </aside>
         </div>
       </section>
+
+      ${seccionMenu}
 
       <section class="detalle-destacados">
         <div class="detalle-contenedor">

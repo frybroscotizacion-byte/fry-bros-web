@@ -139,4 +139,21 @@ for (const [ruta, id] of paginasServicio) {
   assert.match(pagina, /detalle-servicio\.js/);
 }
 
-console.log("Pruebas correctas: tarifa única, límites por servicio y cotizaciones seguras.");
+const detalleServicio = fs.readFileSync(new URL("./js/detalle-servicio.js", import.meta.url), "utf8");
+const eventosData = fs.readFileSync(new URL("./data/eventos.js", import.meta.url), "utf8");
+
+assert.match(detalleServicio, /images\/hamburguesa-evento\.jpg/);
+assert.match(detalleServicio, /docs\/menu-hamburguesas\.pdf/);
+assert.match(detalleServicio, /American Bacon/);
+assert.match(detalleServicio, /Special Fry Bros/);
+assert.match(eventosData, /images\/equipo-evento\.jpg/);
+
+for (const ruta of [
+  "images/hamburguesa-evento.jpg",
+  "images/equipo-evento.jpg",
+  "docs/menu-hamburguesas.pdf"
+]) {
+  assert.ok(fs.statSync(new URL(`./${ruta}`, import.meta.url)).size > 1000, `${ruta} debe existir y tener contenido`);
+}
+
+console.log("Pruebas correctas: cotizador seguro, menú de hamburguesas y galería actualizados.");

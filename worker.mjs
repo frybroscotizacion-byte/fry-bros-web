@@ -66,7 +66,7 @@ const TIPOS_EVENTO = new Set([
 
 const unidad = (precio, unidades) => precio / unidades;
 const gramo = (precio, gramos) => precio / gramos;
-const redondear = (numero) => Math.ceil(numero / 1000) * 1000;
+const redondear = (numero) => Math.ceil(numero / 10000) * 10000;
 
 function calcularUtiles(personas) {
   const u = CONFIG.utiles;
@@ -101,7 +101,7 @@ function calcularCotizacionServidor(tipo, personas, valorProductosPorPersona) {
       papas.gasEvento + papas.ketchupEvento;
     return {
       servicio: NOMBRES_SERVICIO[tipo],
-      total: Math.round(ingredientes + utiles + papas.servicioEvento + CONFIG.transporte),
+      total: redondear(ingredientes + utiles + papas.servicioEvento + CONFIG.transporte),
       productosPorPersona: null,
       cantidadProducto: null
     };

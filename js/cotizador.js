@@ -1,7 +1,7 @@
 globalThis.FRY_BROS_COTIZADOR = (() => {
   const costoUnidad = (precio, unidades) => precio / unidades;
   const costoGramo = (precio, gramos) => precio / gramos;
-  const redondearPrecio = (numero) => Math.ceil(numero / 1000) * 1000;
+  const redondearPrecio = (numero) => Math.ceil(numero / 10000) * 10000;
 
   function normalizarProductosPorPersona(valor) {
     const configuracion = CONFIG_COTIZADOR.productosPorPersona;
@@ -30,7 +30,7 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
       papas.gasEvento + papas.ketchupEvento;
     const servicioEvento = papas.servicioEvento;
     const transporte = CONFIG_COTIZADOR.transporte;
-    const total = Math.round(costoIngredientes + costoUtiles + servicioEvento + transporte);
+    const total = redondearPrecio(costoIngredientes + costoUtiles + servicioEvento + transporte);
     return {
       servicio: "Papas Fritas",
       personas,

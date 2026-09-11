@@ -36,9 +36,9 @@ for (const [people, expected] of tiers) {
 }
 
 const potatoExpected = {
-  40: 143127, 50: 148821, 60: 149325, 70: 155019, 80: 155523,
-  90: 156027, 100: 161722, 110: 162226, 120: 167920,
-  130: 168424, 140: 174118, 150: 174622, 160: 180316
+  40: 150000, 50: 150000, 60: 150000, 70: 160000, 80: 160000,
+  90: 160000, 100: 170000, 110: 170000, 120: 170000,
+  130: 170000, 140: 180000, 150: 180000, 160: 190000
 };
 for (const [people, expected] of Object.entries(potatoExpected)) {
   assert.equal(calculator.calcular("papas", Number(people)).total, expected);
@@ -59,7 +59,7 @@ for (const [type, cantidadesValidas] of Object.entries(limitesPorServicio)) {
     assert.equal(quote.personas, people);
     assert.equal(quote.servicioEvento, 80000);
     assert.ok(Number.isFinite(quote.total) && quote.total > 0);
-    assert.equal(quote.total % 1000, 0);
+    assert.equal(quote.total % 10000, 0);
     assert.equal(
       calcularCotizacionServidor(type, people).total,
       quote.total,
@@ -81,7 +81,7 @@ for (const [type, cantidadesValidas] of Object.entries(limitesPorServicio)) {
 
 assert.equal(calculator.calcular("hamburguesas", 20).cantidadProducto, 40);
 assert.equal(calculator.calcular("hamburguesas", 50).cantidadProducto, 100);
-assert.equal(calculator.calcular("hamburguesas", 35, 2).total, 318000);
+assert.equal(calculator.calcular("hamburguesas", 35, 2).total, 320000);
 
 const payloadValido = validarPayload({
   servicioId: "hamburguesas",
@@ -147,4 +147,17 @@ for (const retired of ["hotdogs", "churrascos", "lomitos"]) {
   assert.ok(calculator.calcular(retired, 30).error);
   assert.equal(calcularCotizacionServidor(retired, 30).total, null);
   assert.ok(validarPayload({ ...payloadValido.datos, servicioId: retired, personas: 30 }).error);
+}
+
+// Every supported quote rounds upward by less than $10,000 and agrees with the server.
+for (const [type, min, max] of [["papas", 40, 160], ["hamburguesas", 20, 50]]) {
+  for (let people = min; people <= max; people++) {
+    for (const quantity of (type === "papas" ? [2] : [1, 1.5, 2, 2.5, 3])) {
+      const quote = calculator.calcular(type, people, quantity);
+      const raw = quote.costoIngredientes + quote.costoUtiles + quote.servicioEvento + quote.transporte;
+      assert.equal(quote.total % 10000, 0);
+      assert.ok(quote.total >= raw && quote.total - raw < 10000);
+      assert.equal(calcularCotizacionServidor(type, people, quantity).total, quote.total);
+    }
+  }
 }

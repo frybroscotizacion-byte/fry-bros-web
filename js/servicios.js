@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <h2>¿Qué cocinamos?</h2>
 
         <p>
-          Elige entre nuestras opciones preparadas al momento
+          Papas crujientes y hamburguesas a la plancha, preparadas al momento
           para disfrutar junto a tus invitados.
         </p>
       </div>

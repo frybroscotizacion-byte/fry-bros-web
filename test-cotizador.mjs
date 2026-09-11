@@ -51,9 +51,6 @@ for (const people of [41, 57, 99, 137, 159]) {
 
 const limitesPorServicio = {
   hamburguesas: [20, 50],
-  hotdogs: [20, 50, 60, 100],
-  churrascos: [20, 50],
-  lomitos: [20, 50, 60, 100]
 };
 
 for (const [type, cantidadesValidas] of Object.entries(limitesPorServicio)) {
@@ -82,18 +79,9 @@ for (const [type, cantidadesValidas] of Object.entries(limitesPorServicio)) {
   }
 }
 
-assert.equal(
-  calculator.calcular("churrascos", 50).total,
-  calculator.calcular("lomitos", 50).total
-);
 assert.equal(calculator.calcular("hamburguesas", 20).cantidadProducto, 40);
 assert.equal(calculator.calcular("hamburguesas", 50).cantidadProducto, 100);
-assert.equal(calculator.calcular("churrascos", 20).cantidadProducto, 40);
-assert.equal(calculator.calcular("lomitos", 100).cantidadProducto, 200);
-assert.equal(calculator.calcular("hotdogs", 20).cantidadProducto, 40);
-assert.equal(calculator.calcular("hotdogs", 100).cantidadProducto, 200);
 assert.equal(calculator.calcular("hamburguesas", 35, 2).total, 318000);
-assert.equal(calculator.calcular("churrascos", 35, 2).total, 217000);
 
 const payloadValido = validarPayload({
   servicioId: "hamburguesas",
@@ -112,8 +100,8 @@ assert.equal(payloadValido.datos.productosPorPersona, 2.5);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 51 }).error);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "churrascos", personas: 51 }).error);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", personas: 37 }).datos);
-assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hotdogs", personas: 100 }).datos);
-assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "lomitos", personas: 100 }).datos);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hotdogs", personas: 100 }).error);
+assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "lomitos", personas: 100 }).error);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "papas", personas: 73 }).datos);
 assert.ok(validarPayload({ ...payloadValido.datos, servicioId: "hamburguesas", productosPorPersona: 4 }).error);
 assert.ok(calculator.calcular("hamburguesas", 51).error);
@@ -127,9 +115,6 @@ assert.match(app, /type="number"/);
 const paginasServicio = [
   ["pages/papas-fritas.html", "papas-fritas"],
   ["pages/hamburguesas.html", "hamburguesas"],
-  ["pages/hot-dogs.html", "hot-dogs"],
-  ["pages/lomitos.html", "lomitos"],
-  ["pages/churrascos.html", "churrascos"]
 ];
 
 for (const [ruta, id] of paginasServicio) {
@@ -157,3 +142,9 @@ for (const ruta of [
 }
 
 console.log("Pruebas correctas: cotizador seguro, menú de hamburguesas y galería actualizados.");
+
+for (const retired of ["hotdogs", "churrascos", "lomitos"]) {
+  assert.ok(calculator.calcular(retired, 30).error);
+  assert.equal(calcularCotizacionServidor(retired, 30).total, null);
+  assert.ok(validarPayload({ ...payloadValido.datos, servicioId: retired, personas: 30 }).error);
+}

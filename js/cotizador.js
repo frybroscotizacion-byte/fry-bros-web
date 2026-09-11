@@ -75,7 +75,7 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
       servicioEvento,
       transporte,
       total,
-      presentacion: "Sándwiches servidos en platos."
+      presentacion: "Hamburguesas servidas en platos."
     };
   }
 
@@ -102,50 +102,6 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
     return baseSandwich(personas, "Hamburguesas", cantidad, costoPorUnidad);
   }
 
-  function calcularChurrasco(personas, nombre, productosPorPersona) {
-    const cantidad = Math.ceil(personas * productosPorPersona);
-    const g = CONFIG_COTIZADOR.ingredientes;
-    const c = CONFIG_COTIZADOR.churrascos;
-    const p = CONFIG_COTIZADOR.porciones;
-
-    const costoPorUnidad =
-      costoUnidad(c.carne.precio, c.carne.unidades) +
-      costoUnidad(g.pan.precio, g.pan.unidades) +
-      costoGramo(g.tomate.precio, g.tomate.gramos) * p.tomate +
-      costoGramo(g.lechuga.precio, g.lechuga.gramosUtilesEstimados) * p.lechuga +
-      costoGramo(g.cebolla.precio, g.cebolla.gramos) * p.cebolla +
-      costoGramo(c.palta.precio, c.palta.gramos) * p.palta +
-      costoGramo(g.ketchup.precio, g.ketchup.gramos) * p.ketchup +
-      costoGramo(g.mayonesa.precio, g.mayonesa.gramos) * p.mayonesa +
-      costoGramo(g.mostaza.precio, g.mostaza.gramos) * p.mostaza;
-
-    return baseSandwich(personas, nombre, cantidad, costoPorUnidad);
-  }
-
-  function calcularHotDogs(personas, productosPorPersona) {
-    const cantidad = Math.ceil(personas * productosPorPersona);
-    const h = CONFIG_COTIZADOR.hotDogs;
-    const p = CONFIG_COTIZADOR.porciones;
-
-    const costoPorUnidad =
-      costoUnidad(h.salchichas.precio, h.salchichas.unidades) +
-      costoUnidad(h.pan.precio, h.pan.unidades) +
-      costoGramo(h.palta.precio, h.palta.gramos) * p.paltaHotDog +
-      costoGramo(h.tomate.precio, h.tomate.gramos) * p.tomateHotDog;
-
-    const despacho =
-      personas === 20
-        ? h.despacho20Personas
-        : personas >= 100
-          ? h.despachoDesde100
-          : h.despachoBase;
-
-    const extras =
-      h.mayonesaEvento + h.ketchupEvento + h.salEvento + despacho;
-
-    return baseSandwich(personas, "Hot Dogs", cantidad, costoPorUnidad, extras);
-  }
-
   function calcular(tipo, personas, valorProductosPorPersona) {
     const limites = obtenerLimites(tipo);
     if (!limites) return { error: "Selecciona un servicio válido." };
@@ -157,12 +113,9 @@ globalThis.FRY_BROS_COTIZADOR = (() => {
     }
     const productosPorPersona = normalizarProductosPorPersona(valorProductosPorPersona);
     if (!productosPorPersona) {
-      return { error: "Selecciona una cantidad válida de sándwiches o completos por persona." };
+      return { error: "Selecciona una cantidad válida de hamburguesas por persona." };
     }
     if (tipo === "hamburguesas") return calcularHamburguesas(personas, productosPorPersona);
-    if (tipo === "hotdogs") return calcularHotDogs(personas, productosPorPersona);
-    if (tipo === "churrascos") return calcularChurrasco(personas, "Churrascos", productosPorPersona);
-    if (tipo === "lomitos") return calcularChurrasco(personas, "Lomitos", productosPorPersona);
     return { error: "Selecciona un servicio válido." };
   }
 
@@ -201,9 +154,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function obtenerDetalleProductos(cotizacion) {
     const nombres = {
       Hamburguesas: "hamburguesas",
-      Churrascos: "churrascos",
-      Lomitos: "lomitos",
-      "Hot Dogs": "hot dogs"
     };
     const producto = nombres[cotizacion.servicio];
 
@@ -253,9 +203,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <option value="">Selecciona un servicio</option>
             <option value="papas">Papas Fritas</option>
             <option value="hamburguesas">Hamburguesas</option>
-            <option value="hotdogs">Hot Dogs</option>
-            <option value="churrascos">Churrascos</option>
-            <option value="lomitos">Lomitos</option>
           </select>
         </div>
 
@@ -274,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <option value="">Primero selecciona un servicio</option>
           </select>
           <small class="campo-ayuda">
-            Elige cuántos sándwiches o completos recibirá cada persona. El precio se ajusta automáticamente.
+            Elige cuántas hamburguesas recibirá cada persona. El precio se ajusta automáticamente.
           </small>
         </div>
 
@@ -389,7 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const servicioSolicitado = new URLSearchParams(window.location.search).get("servicio");
-  const serviciosValidos = ["papas", "hamburguesas", "hotdogs", "churrascos", "lomitos"];
+  const serviciosValidos = ["papas", "hamburguesas"];
   if (serviciosValidos.includes(servicioSolicitado)) {
     servicioSelect.value = servicioSolicitado;
     servicioSelect.dispatchEvent(new Event("change"));

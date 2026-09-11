@@ -4,9 +4,6 @@ const CONFIG = {
   limitesPersonas: {
     papas: { minimo: 40, maximo: 160 },
     hamburguesas: { minimo: 20, maximo: 50 },
-    hotdogs: { minimo: 20, maximo: 100 },
-    churrascos: { minimo: 20, maximo: 50 },
-    lomitos: { minimo: 20, maximo: 100 }
   },
   productosPorPersona: {
     predeterminado: 2,
@@ -40,22 +37,6 @@ const CONFIG = {
     pepinillos: { precio: 8000, gramos: 1000 },
     cebollaCrispy: { precio: 1710, gramos: 10 }
   },
-  churrascos: {
-    carne: { precio: 16300, unidades: 24 },
-    palta: { precio: 6000, gramos: 1000 }
-  },
-  hotDogs: {
-    salchichas: { precio: 8461, unidades: 20 },
-    pan: { precio: 1890, unidades: 8 },
-    palta: { precio: 4490, gramos: 1000 },
-    tomate: { precio: 1990, gramos: 1000 },
-    mayonesaEvento: 2880,
-    ketchupEvento: 2990,
-    salEvento: 340,
-    despachoBase: 3000,
-    despacho20Personas: 3800,
-    despachoDesde100: 5000
-  },
   utiles: {
     servilletas: { precio: 700, unidades: 300 },
     guantes: { precio: 5000, unidades: 100, usoEvento: 10 },
@@ -65,18 +46,14 @@ const CONFIG = {
   },
   porciones: {
     tomate: 25, lechuga: 15, cebolla: 15, ketchup: 10,
-    mayonesa: 10, mostaza: 5, palta: 30, barbecue: 5,
-    pepinillos: 10, cebollaCrispy: 5, tomateHotDog: 50,
-    paltaHotDog: 50
+    mayonesa: 10, mostaza: 5, barbecue: 5,
+    pepinillos: 10, cebollaCrispy: 5,
   }
 };
 
 const NOMBRES_SERVICIO = {
   papas: "Papas Fritas",
   hamburguesas: "Hamburguesas",
-  hotdogs: "Hot Dogs",
-  churrascos: "Churrascos",
-  lomitos: "Lomitos"
 };
 
 const TIPOS_EVENTO = new Set([
@@ -158,45 +135,6 @@ function calcularCotizacionServidor(tipo, personas, valorProductosPorPersona) {
     return {
       servicio: NOMBRES_SERVICIO[tipo],
       total: totalSandwich(personas, cantidad, costo),
-      productosPorPersona,
-      cantidadProducto: cantidad
-    };
-  }
-
-  if (tipo === "churrascos" || tipo === "lomitos") {
-    const c = CONFIG.churrascos;
-    const cantidad = Math.ceil(personas * productosPorPersona);
-    const costo = unidad(c.carne.precio, c.carne.unidades) +
-      unidad(g.pan.precio, g.pan.unidades) +
-      gramo(g.tomate.precio, g.tomate.gramos) * p.tomate +
-      gramo(g.lechuga.precio, g.lechuga.gramos) * p.lechuga +
-      gramo(g.cebolla.precio, g.cebolla.gramos) * p.cebolla +
-      gramo(c.palta.precio, c.palta.gramos) * p.palta +
-      gramo(g.ketchup.precio, g.ketchup.gramos) * p.ketchup +
-      gramo(g.mayonesa.precio, g.mayonesa.gramos) * p.mayonesa +
-      gramo(g.mostaza.precio, g.mostaza.gramos) * p.mostaza;
-    return {
-      servicio: NOMBRES_SERVICIO[tipo],
-      total: totalSandwich(personas, cantidad, costo),
-      productosPorPersona,
-      cantidadProducto: cantidad
-    };
-  }
-
-  if (tipo === "hotdogs") {
-    const h = CONFIG.hotDogs;
-    const cantidad = Math.ceil(personas * productosPorPersona);
-    const costo = unidad(h.salchichas.precio, h.salchichas.unidades) +
-      unidad(h.pan.precio, h.pan.unidades) +
-      gramo(h.palta.precio, h.palta.gramos) * p.paltaHotDog +
-      gramo(h.tomate.precio, h.tomate.gramos) * p.tomateHotDog;
-    const despacho = personas === 20
-      ? h.despacho20Personas
-      : personas >= 100 ? h.despachoDesde100 : h.despachoBase;
-    const extras = h.mayonesaEvento + h.ketchupEvento + h.salEvento + despacho;
-    return {
-      servicio: NOMBRES_SERVICIO[tipo],
-      total: totalSandwich(personas, cantidad, costo, extras),
       productosPorPersona,
       cantidadProducto: cantidad
     };

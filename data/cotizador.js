@@ -7,9 +7,6 @@ const CONFIG_COTIZADOR = {
   limitesPersonas: {
     papas: { minimo: 40, maximo: 160 },
     hamburguesas: { minimo: 20, maximo: 50 },
-    hotdogs: { minimo: 20, maximo: 100 },
-    churrascos: { minimo: 20, maximo: 50 },
-    lomitos: { minimo: 20, maximo: 100 }
   },
 
   whatsappNegocio: "56942863211",
@@ -55,24 +52,6 @@ const CONFIG_COTIZADOR = {
     cebollaCrispy: { precio: 1710, gramos: 10 }
   },
 
-  churrascos: {
-    carne: { precio: 16300, unidades: 24 },
-    palta: { precio: 6000, gramos: 1000 }
-  },
-
-  hotDogs: {
-    salchichas: { precio: 8461, unidades: 20 },
-    pan: { precio: 1890, unidades: 8 },
-    palta: { precio: 4490, gramos: 1000 },
-    tomate: { precio: 1990, gramos: 1000 },
-    mayonesaEvento: 2880,
-    ketchupEvento: 2990,
-    salEvento: 340,
-    despachoBase: 3000,
-    despacho20Personas: 3800,
-    despachoDesde100: 5000
-  },
-
   utiles: {
     servilletas: { precio: 700, unidades: 300 },
     guantes: { precio: 5000, unidades: 100, usoEvento: 10 },
@@ -88,11 +67,8 @@ const CONFIG_COTIZADOR = {
     ketchup: 10,
     mayonesa: 10,
     mostaza: 5,
-    palta: 30,
     barbecue: 5,
     pepinillos: 10,
     cebollaCrispy: 5,
-    tomateHotDog: 50,
-    paltaHotDog: 50
   }
 };

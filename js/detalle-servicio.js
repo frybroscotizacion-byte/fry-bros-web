@@ -54,63 +54,6 @@ const DETALLES_SERVICIOS = {
         }
       ]
     }
-  },
-  "hot-dogs": {
-    nombre: "Hot Dogs",
-    cotizador: "hotdogs",
-    imagen: "../images/Hotdog.jpeg",
-    bajada: "Hot dogs frescos, coloridos y preparados frente a tus invitados, ideales para una celebración relajada y llena de sabor.",
-    tituloCarta: "Un favorito para celebrar sin complicaciones",
-    parrafos: [
-      "Los hot dogs Fry Bros combinan pan, salchicha, tomate, palta y aderezos en una opción conocida, abundante y perfecta para eventos con mucha energía.",
-      "Preparamos y armamos cada unidad durante el servicio, cuidando el orden de la estación y la presentación para que la experiencia sea tan buena como el sabor.",
-      "Es una alternativa ideal para cumpleaños, encuentros de curso, celebraciones familiares y eventos donde se busca comida rica, rápida y preparada en el lugar."
-    ],
-    presentacion: "Hot dogs servidos en platos individuales.",
-    rango: "Disponible para eventos de 20 a 100 personas",
-    destacados: [
-      ["Ingredientes frescos", "Tomate, palta y aderezos completan una preparación clásica y reconocible para todos."],
-      ["Armados al momento", "Organizamos cada tanda durante el evento para servir un producto fresco y bien presentado."],
-      ["Perfectos para compartir", "Una propuesta informal y entretenida que funciona muy bien en celebraciones de todas las edades."]
-    ]
-  },
-  lomitos: {
-    nombre: "Lomitos",
-    cotizador: "lomitos",
-    imagen: "../images/lomito.jpeg",
-    bajada: "Lomitos calientes, abundantes y preparados durante el evento para quienes buscan un sándwich con más carácter.",
-    tituloCarta: "Un sándwich generoso y lleno de sabor",
-    parrafos: [
-      "Nuestro servicio de lomitos lleva la cocina directamente a tu celebración. Preparamos los sándwiches durante el evento y los acompañamos con ingredientes frescos para lograr una propuesta sabrosa y contundente.",
-      "La estación se instala con anticipación e incluye el carro, una mesa de apoyo y el equipo necesario para cocinar y servir de manera organizada.",
-      "Es una excelente elección para reuniones familiares, celebraciones juveniles y eventos donde la comida también debe ser uno de los grandes recuerdos de la jornada."
-    ],
-    presentacion: "Lomitos servidos en platos individuales.",
-    rango: "Disponible para eventos de 20 a 100 personas",
-    destacados: [
-      ["Calientes y abundantes", "Cocinamos durante el evento para entregar un sándwich con buena temperatura y una porción generosa."],
-      ["Acompañamientos frescos", "Combinamos la preparación con vegetales y aderezos que aportan frescura y equilibrio."],
-      ["Experiencia completa", "Nos encargamos del montaje, la cocina, el servicio y el orden de nuestra estación."]
-    ]
-  },
-  churrascos: {
-    nombre: "Churrascos",
-    cotizador: "churrascos",
-    imagen: "../images/Churasco.jpeg",
-    bajada: "Churrascos preparados a la plancha, acompañados con ingredientes frescos y servidos calientes para disfrutar sin apuro.",
-    tituloCarta: "El sabor de la plancha en tu evento",
-    parrafos: [
-      "Los churrascos Fry Bros se preparan durante el evento para que la carne, el pan y los acompañamientos se encuentren justo al momento de servir.",
-      "Completamos cada sándwich con tomate, palta, vegetales y aderezos, logrando una alternativa abundante y muy chilena para compartir con tus invitados.",
-      "Nuestro equipo llega antes de la hora acordada, instala la estación y coordina la atención para ofrecer un servicio cercano, ordenado y con presencia."
-    ],
-    presentacion: "Churrascos servidos en platos individuales.",
-    rango: "Disponible para eventos de 20 a 50 personas",
-    destacados: [
-      ["Preparación a la vista", "La plancha y el movimiento del equipo convierten la cocina en parte del ambiente del evento."],
-      ["Sabor completo", "Carne, pan, ingredientes frescos y aderezos se combinan en un sándwich abundante."],
-      ["Equipo Fry Bros", "Dos o más cocineros se encargan de la preparación y la entrega según el tamaño del evento."]
-    ]
   }
 };
 
@@ -146,57 +89,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const enlaceMenuNav = tieneMenu ? '<a href="#menu">Menú</a>' : "";
 
   const seccionMenu = tieneMenu ? `
-    <section class="detalle-menu" id="menu">
-      <div class="detalle-contenedor">
-        <div class="detalle-menu-encabezado">
-          <div>
-            <span class="detalle-etiqueta">ELIGE TUS FAVORITAS</span>
-            <h2>Menú de hamburguesas</h2>
-          </div>
-          <p>
-            Tres opciones preparadas al momento para que elijas la combinación
-            que mejor representa tu evento.
-          </p>
-        </div>
-
-        <div class="detalle-menu-grid">
-          ${servicio.menu.opciones.map((opcion, indice) => `
-            <article class="detalle-menu-card">
-              <span>0${indice + 1}</span>
-              <h3>${opcion.nombre}</h3>
-              <p>${opcion.ingredientes}</p>
-            </article>
-          `).join("")}
-        </div>
-
-        <div class="detalle-menu-documento">
-          <div class="detalle-menu-documento-barra">
-            <div>
-              <span class="detalle-etiqueta">MENÚ FRY BROS</span>
-              <h3>Consulta el documento completo</h3>
+    <section class="burger-menu" id="menu" aria-labelledby="menu-title">
+      <header class="burger-menu-heading"><p>LA CARTA</p><h2 id="menu-title">HAMBURGUESAS<br>FRY BROS</h2><span>PREPARADAS AL MOMENTO · PARA TU EVENTO</span></header>
+      <div class="burger-options">
+        ${servicio.menu.opciones.map((opcion) => `
+          <article class="burger-option">
+            <div class="burger-copy"><h3>${opcion.nombre}</h3><p>${opcion.ingredientes}</p></div>
+            <div class="burger-missing" role="img" aria-label="Foto de ${opcion.nombre} no disponible">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M25 5H7v30h26V15M25 5v10h8L25 5Z" stroke="currentColor" stroke-width="2"/><path d="m10 29 7-8 5 5 4-3 4 6M15 13h.01" stroke="currentColor" stroke-width="2"/></svg><span>Imagen no disponible</span>
             </div>
-            <div class="detalle-menu-documento-acciones">
-              <a class="detalle-boton" href="${servicio.menu.documento}" target="_blank" rel="noopener noreferrer">
-                Abrir menú en PDF
-              </a>
-              <a class="detalle-boton detalle-boton-claro" href="${servicio.menu.documento}" download="Menu-Fry-Bros-Hamburguesas.pdf">
-                Descargar
-              </a>
-            </div>
-          </div>
-          <object
-            class="detalle-menu-pdf"
-            data="${servicio.menu.documento}"
-            type="application/pdf"
-            aria-label="Menú de hamburguesas Fry Bros"
-          >
-            <p>
-              Tu navegador no puede mostrar el PDF aquí.
-              <a href="${servicio.menu.documento}" target="_blank" rel="noopener noreferrer">Abrir menú</a>
-            </p>
-          </object>
-        </div>
+          </article>`).join("")}
       </div>
+      <footer class="burger-menu-bottom"><p>Papas fritas y hamburguesas para eventos.<br><strong>Nosotros cocinamos. Tú disfrutas.</strong></p>
+        <a class="burger-pill" href="../index.html?servicio=hamburguesas#cotizar">Cotizar mi evento</a>
+        <div class="burger-downloads"><a href="${servicio.menu.documento}" target="_blank" rel="noopener noreferrer">Ver carta en PDF</a><a href="${servicio.menu.documento}" download="Menu-Fry-Bros-Hamburguesas.pdf">Descargar carta</a></div>
+      </footer>
     </section>
   ` : "";
 
@@ -235,6 +142,8 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </section>
 
+      ${seccionMenu}
+
       <section class="detalle-carta">
         <div class="detalle-contenedor detalle-carta-grid">
           <article class="detalle-panel">
@@ -257,8 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
           </aside>
         </div>
       </section>
-
-      ${seccionMenu}
 
       <section class="detalle-destacados">
         <div class="detalle-contenedor">

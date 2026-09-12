@@ -1,5 +1,11 @@
 const eventos = [
   {
+    id: "evento-papas-noche",
+    imagen: "images/evento-papas-noche.jpg",
+    titulo: "Papas fritas preparadas al momento",
+    descripcion: "El equipo Fry Bros atendiendo una celebración nocturna desde nuestra estación de papas fritas."
+  },
+  {
     id: "evento-hamburguesas-equipo",
     imagen: "images/equipo-evento.jpg",
     titulo: "Hamburguesas preparadas al momento",

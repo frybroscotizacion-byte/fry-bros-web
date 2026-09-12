@@ -26,7 +26,18 @@ document.addEventListener("DOMContentLoaded", () => {
         </p>
       </div>
 
-      <div id="eventos-container"></div>
+      <div class="eventos-carrusel">
+        <div
+          id="eventos-container"
+          tabindex="0"
+          aria-label="Galería de eventos destacados"
+        ></div>
+
+        <div class="eventos-controles" aria-label="Controles de galería">
+          <button class="evento-flecha" type="button" data-direccion="anterior" aria-label="Ver fotos anteriores">←</button>
+          <button class="evento-flecha" type="button" data-direccion="siguiente" aria-label="Ver más fotos">→</button>
+        </div>
+      </div>
     </section>
   `;
 
@@ -53,4 +64,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     contenedor.appendChild(tarjeta);
   });
+
+  const desplazarGaleria = (direccion) => {
+    const tarjeta = contenedor.querySelector(".evento-card");
+    const distancia = tarjeta ? tarjeta.getBoundingClientRect().width + 20 : 320;
+
+    contenedor.scrollBy({
+      left: direccion === "siguiente" ? distancia : -distancia,
+      behavior: "smooth"
+    });
+  };
+
+  montaje.querySelectorAll(".evento-flecha").forEach((boton) => {
+    boton.addEventListener("click", () => desplazarGaleria(boton.dataset.direccion));
+  });
+
+  let inicioX = 0;
+  let desplazamientoInicial = 0;
+
+  contenedor.addEventListener("pointerdown", (evento) => {
+    inicioX = evento.clientX;
+    desplazamientoInicial = contenedor.scrollLeft;
+    contenedor.classList.add("arrastrando");
+    contenedor.setPointerCapture(evento.pointerId);
+  });
+
+  contenedor.addEventListener("pointermove", (evento) => {
+    if (!contenedor.classList.contains("arrastrando")) return;
+    contenedor.scrollLeft = desplazamientoInicial - (evento.clientX - inicioX);
+  });
+
+  const terminarArrastre = () => contenedor.classList.remove("arrastrando");
+  contenedor.addEventListener("pointerup", terminarArrastre);
+  contenedor.addEventListener("pointercancel", terminarArrastre);
 });

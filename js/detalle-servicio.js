@@ -42,15 +42,18 @@ const DETALLES_SERVICIOS = {
       opciones: [
         {
           nombre: "American Bacon",
-          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, salsa BBQ y cebolla caramelizada."
+          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, salsa BBQ y cebolla caramelizada.",
+          imagen: "../images/american-bacon.webp"
         },
         {
           nombre: "Italiana",
-          ingredientes: "Carne de hamburguesa, queso cheddar, tomate, lechuga, pepinillos y mayonesa Fry Bros."
+          ingredientes: "Carne de hamburguesa, queso cheddar, tomate, lechuga, pepinillos y mayonesa Fry Bros.",
+          imagen: "../images/italiana.webp"
         },
         {
           nombre: "Special Fry Bros",
-          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, cebolla caramelizada, tomate, lechuga y mayonesa Fry Bros."
+          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, cebolla caramelizada, tomate, lechuga y mayonesa Fry Bros.",
+          imagen: "../images/special-fry-bros.webp"
         }
       ]
     }
@@ -95,9 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ${servicio.menu.opciones.map((opcion) => `
           <article class="burger-option">
             <div class="burger-copy"><h3>${opcion.nombre}</h3><p>${opcion.ingredientes}</p></div>
-            <div class="burger-missing" role="img" aria-label="Foto de ${opcion.nombre} no disponible">
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M25 5H7v30h26V15M25 5v10h8L25 5Z" stroke="currentColor" stroke-width="2"/><path d="m10 29 7-8 5 5 4-3 4 6M15 13h.01" stroke="currentColor" stroke-width="2"/></svg><span>Imagen no disponible</span>
-            </div>
+            <figure class="burger-foto">
+              <img src="${opcion.imagen}" alt="Hamburguesa ${opcion.nombre}" loading="lazy">
+            </figure>
           </article>`).join("")}
       </div>
       <footer class="burger-menu-bottom"><p>Papas fritas y hamburguesas para eventos.<br><strong>Nosotros cocinamos. Tú disfrutas.</strong></p>

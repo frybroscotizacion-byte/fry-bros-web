@@ -17,7 +17,7 @@ body.detalle-body {
   margin: 0;
   background: var(--detalle-crema);
   color: var(--detalle-texto);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Times New Roman", Times, serif;
 }
 
 .detalle-nav {
@@ -518,6 +518,3 @@ body.detalle-body {
   }
 
   .detalle-footer {
-    flex-direction: column;
-  }
-}

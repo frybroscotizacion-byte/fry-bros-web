@@ -113,8 +113,13 @@
 
   color: #111;
 
-  font-size: 1.3rem;
-  font-weight: 800;
+  padding: 11px;
+}
+
+.contacto-icono svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
 }
 
 .contacto-boton strong {

@@ -168,7 +168,21 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  const escapeHTML = value => String(value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  let challengeToken = "", widget;
+  async function setupChallenge() {
+    const config = await fetch("/api/config").then(r => r.json());
+    if (!config.turnstileSiteKey) throw new Error("Verificación no configurada");
+    await new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.onload = resolve; script.onerror = reject; document.head.append(script);
+    });
+    widget = window.turnstile.render("#quote-challenge", { sitekey: config.turnstileSiteKey, action: "quote", callback: token => { challengeToken = token; }, "expired-callback": () => { challengeToken = ""; }, "error-callback": () => { challengeToken = ""; } });
+  }
   async function registrarCotizacion(payload) {
+    if (!challengeToken) throw new Error("Completa la verificación de seguridad");
+    payload.turnstileToken = challengeToken;
     const endpoint = CONFIG_COTIZADOR.registroEndpoint;
     if (!endpoint) throw new Error("Falta configurar el registro");
 
@@ -178,6 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify(payload)
     });
 
+    challengeToken = "";
+    if (widget !== undefined) window.turnstile.reset(widget);
     const datos = await respuesta.json().catch(() => ({}));
     if (!respuesta.ok || !datos.success) {
       throw new Error(datos.error || "No se pudo registrar la cotización");
@@ -275,6 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
 
+        <div id="quote-challenge"></div>
         <button id="calcular-cotizacion" type="button">Calcular cotización</button>
         <div id="resultado-cotizador" class="resultado-cotizador" hidden></div>
       </div>
@@ -295,6 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const comunaInput = document.querySelector("#cotizador-comuna");
   const direccionInput = document.querySelector("#cotizador-direccion");
 
+  setupChallenge().catch(error => console.error("Fry Bros: verificación no disponible", error));
   fechaInput.min = fechaMinimaEvento();
 
   servicioSelect.addEventListener("change", () => {
@@ -447,7 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
         Servicio de <strong>${cotizacion.servicio}</strong> para
         <strong>${cotizacion.personas} personas</strong>, el
         <strong>${fechaEnPalabras(fechaEvento)}</strong> en
-        <strong>${comuna}</strong>.
+        <strong>${escapeHTML(comuna)}</strong>.
       </p>
 
       ${detalleProductos ? `
@@ -490,3 +508,4 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   });
 });
+

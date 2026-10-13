@@ -4,3 +4,5 @@ wrangler.jsonc
 test-cotizador.mjs
 package.json
 package-lock.json
+SECURITY-SETUP.md
+security.test.mjs

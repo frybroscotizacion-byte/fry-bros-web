@@ -165,6 +165,7 @@ function fechaMinimaChile() {
 }
 
 function validarPayload(entrada) {
+  if (!entrada || typeof entrada !== "object" || Array.isArray(entrada)) return { error: "Datos inválidos." };
   const tipo = texto(entrada.servicioId || entrada.servicio, 30).toLowerCase();
   const personas = Number(entrada.personas);
   const nombre = texto(entrada.nombre, 100);
@@ -192,7 +193,7 @@ function validarPayload(entrada) {
   }
   if (!/^[+0-9()\s-]{8,30}$/.test(whatsapp)) return { error: "WhatsApp inválido." };
   if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return { error: "Correo inválido." };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaEvento) || fechaEvento < fechaMinimaChile()) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaEvento) || fechaEvento < fechaMinimaChile() || !Number.isFinite(Date.parse(`${fechaEvento}T12:00:00Z`)) || new Date(`${fechaEvento}T12:00:00Z`).toISOString().slice(0, 10) !== fechaEvento) {
     return { error: "La fecha debe tener al menos 7 días de anticipación." };
   }
 
@@ -218,13 +219,20 @@ function json(data, status = 200) {
 async function registrar(request, env) {
   if (request.method !== "POST") return json({ success: false, error: "Método no permitido." }, 405);
   const origen = request.headers.get("Origin");
-  if (origen && origen !== new URL(request.url).origin) {
+  if (origen !== new URL(request.url).origin) {
     return json({ success: false, error: "Origen no permitido." }, 403);
   }
   const sheetsWebhookUrl = env.GOOGLE_SHEETS_WEBHOOK_URL || env.GOOGLE_SHEETS_WEBHOOK;
   if (!sheetsWebhookUrl || !env.FRY_BROS_SECRET) {
     return json({ success: false, error: "Registro temporalmente no disponible." }, 503);
   }
+
+  let webhook;
+  try { webhook = new URL(sheetsWebhookUrl); } catch { return json({ success: false }, 503); }
+  if (webhook.protocol !== "https:" || webhook.hostname !== "script.google.com" || !/^\/macros\/s\/[^/]+\/exec$/.test(webhook.pathname)) return json({ success: false }, 503);
+  if (!env.QUOTE_RATE_LIMITER) return json({ success: false, error: "Protección temporalmente no disponible." }, 503);
+  const limit = await env.QUOTE_RATE_LIMITER.limit({ key: request.headers.get("CF-Connecting-IP") || "unknown" });
+  if (!limit.success) return json({ success: false, error: "Demasiadas solicitudes. Intenta más tarde." }, 429);
 
   const largo = Number(request.headers.get("Content-Length") || 0);
   if (largo > 12000) return json({ success: false, error: "Solicitud demasiado grande." }, 413);
@@ -238,6 +246,17 @@ async function registrar(request, env) {
     return json({ success: false, error: "Datos inválidos." }, 400);
   }
 
+  if (!entrada || typeof entrada !== "object" || Array.isArray(entrada)) return json({ success: false, error: "Datos inválidos." }, 400);
+  if (!env.TURNSTILE_SECRET_KEY) return json({ success: false, error: "Protección temporalmente no disponible." }, 503);
+  try {
+    const verification = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: env.TURNSTILE_SECRET_KEY, response: texto(entrada.turnstileToken, 2048), remoteip: request.headers.get("CF-Connecting-IP") }),
+      signal: AbortSignal.timeout(10000)
+    });
+    const challenge = await verification.json();
+    if (!challenge.success || challenge.hostname !== new URL(request.url).hostname || challenge.action !== "quote") return json({ success: false, error: "Verificación inválida." }, 403);
+  } catch { return json({ success: false, error: "Verificación no disponible." }, 503); }
   const validacion = validarPayload(entrada);
   if (validacion.error) return json({ success: false, error: validacion.error }, 400);
 
@@ -271,7 +290,8 @@ async function registrar(request, env) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      redirect: "follow"
+      redirect: "follow",
+      signal: AbortSignal.timeout(15000)
     });
     const resultado = await respuesta.json().catch(() => null);
     if (!respuesta.ok || !resultado?.success) throw new Error("apps-script");
@@ -289,9 +309,16 @@ async function registrar(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/config") return json({ turnstileSiteKey: env.TURNSTILE_SITE_KEY || "" });
     if (url.pathname === "/api/cotizaciones") return registrar(request, env);
-    return env.ASSETS.fetch(request);
+    const response = new Response(await env.ASSETS.fetch(request));
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("X-Frame-Options", "DENY");
+    response.headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    return response;
   }
 };
 
 export { calcularCotizacionServidor, validarPayload };
+

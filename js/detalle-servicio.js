@@ -2,7 +2,7 @@ const DETALLES_SERVICIOS = {
   "papas-fritas": {
     nombre: "Papas Fritas",
     cotizador: "papas",
-    imagen: "../images/Papasfritas.jpeg",
+    imagen: "../images/reales/papas-reales.webp",
     bajada: "Una estación de papas doradas, crujientes y recién preparadas para acompañar tu evento con un clásico que siempre funciona.",
     tituloCarta: "El clásico que reúne a todos",
     parrafos: [
@@ -42,18 +42,15 @@ const DETALLES_SERVICIOS = {
       opciones: [
         {
           nombre: "American Bacon",
-          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, salsa BBQ y cebolla caramelizada.",
-          imagen: "../images/american-bacon.webp"
+          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, salsa BBQ y cebolla caramelizada."
         },
         {
           nombre: "Italiana",
-          ingredientes: "Carne de hamburguesa, queso cheddar, tomate, lechuga, pepinillos y mayonesa Fry Bros.",
-          imagen: "../images/italiana.webp"
+          ingredientes: "Carne de hamburguesa, queso cheddar, tomate, lechuga, pepinillos y mayonesa Fry Bros."
         },
         {
           nombre: "Special Fry Bros",
-          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, cebolla caramelizada, tomate, lechuga y mayonesa Fry Bros.",
-          imagen: "../images/special-fry-bros.webp"
+          ingredientes: "Carne de hamburguesa, queso cheddar, tocino, cebolla caramelizada, tomate, lechuga y mayonesa Fry Bros."
         }
       ]
     }
@@ -98,10 +95,12 @@ document.addEventListener("DOMContentLoaded", () => {
         ${servicio.menu.opciones.map((opcion) => `
           <article class="burger-option">
             <div class="burger-copy"><h3>${opcion.nombre}</h3><p>${opcion.ingredientes}</p></div>
-            <figure class="burger-foto">
-              <img src="${opcion.imagen}" alt="Hamburguesa ${opcion.nombre}" loading="lazy">
-            </figure>
           </article>`).join("")}
+      </div>
+      <div class="burger-real-gallery" aria-label="Fotos reales de nuestro servicio">
+        <figure><img src="../images/reales/hamburguesa-real.webp" alt="Una hamburguesa preparada durante un evento Fry Bros" loading="lazy"><figcaption>Hamburguesa de nuestro servicio.</figcaption></figure>
+        <figure><img src="../images/reales/hamburguesas-plancha.webp" alt="Hamburguesas, queso, tocino y pan sobre la plancha" loading="lazy"><figcaption>La preparación, en el evento.</figcaption></figure>
+        <figure><img src="../images/reales/equipo-cocinando.webp" alt="El equipo cocinando en la estación Fry Bros" loading="lazy"><figcaption>Nuestro equipo en acción.</figcaption></figure>
       </div>
       <footer class="burger-menu-bottom"><p>Papas fritas y hamburguesas para eventos.<br><strong>Nosotros cocinamos. Tú disfrutas.</strong></p>
         <a class="burger-pill" href="../index.html?servicio=hamburguesas#cotizar">Cotizar mi evento</a>

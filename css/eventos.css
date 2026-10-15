@@ -10,7 +10,7 @@
       rgba(8, 8, 8, 0.48) 70%,
       rgba(8, 8, 8, 0.35) 100%
     ),
-    url("../images/fondo-eventos.png");
+    url("../images/reales/portada-evento.webp");
 
   background-size: cover;
   background-position: center right;
@@ -162,3 +162,13 @@
     flex-basis: min(300px, 84vw);
   }
 }
+
+.eventos-videos {width:min(1180px,90%);margin:60px auto 0;}
+.eventos-videos h3 {font-size:2.2rem;margin-bottom:22px;}
+.eventos-videos-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;}
+.evento-video {margin:0;min-width:0;}
+.evento-video video {display:block;width:100%;aspect-ratio:9/16;background:#111;border-radius:10px;object-fit:contain;}
+.evento-video figcaption {font-size:1.1rem;margin-top:12px;color:#e9dfd3;}
+@media(max-width:700px){.eventos-videos-grid{grid-template-columns:1fr}.evento-video{max-width:420px;margin:auto;width:100%}}
+
+.evento-imagen img{object-fit:contain}.evento-card:hover .evento-imagen img{transform:none}

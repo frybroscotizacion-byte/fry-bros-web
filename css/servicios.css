@@ -156,3 +156,5 @@
     padding: 20px;
   }
 }
+
+.servicio-imagen img{object-fit:contain}.servicio-card:hover .servicio-imagen img{transform:none}

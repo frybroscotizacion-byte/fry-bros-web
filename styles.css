@@ -170,11 +170,11 @@ nav a:hover::after {
  background:
     linear-gradient(
         90deg,
-        rgba(0, 0, 0, 0.35) 0%,
-        rgba(0, 0, 0, 0.20) 50%,
+        rgba(0, 0, 0, 0.70) 0%,
+        rgba(0, 0, 0, 0.42) 50%,
         rgba(0, 0, 0, 0.10) 100%
     ),
-    url("ChatGPT Image 18 ago 2026, 19_31_54.png");
+    url("images/reales/portada-evento.webp");
 
 background-size: cover;
 background-position: center;
@@ -778,3 +778,5 @@ footer {
     transition-duration: 0.01ms !important;
   }
 }
+
+@media (max-width:650px){.hero-background{background-image:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.82)),url("images/reales/hamburguesa-real.webp");background-position:center 65%}}

@@ -2,7 +2,7 @@ const servicios = [
   {
     id: "papas-fritas",
     nombre: "Papas Fritas",
-    imagen: "images/reales/papas-reales.webp",
+    imagen: "images/mejoradas/papas-sobre-guante.webp",
     descripcion: "Una estación de papas doradas y recién preparadas, servidas en sobres individuales para disfrutar con comodidad.",
     pagina: "pages/papas-fritas.html"
   },

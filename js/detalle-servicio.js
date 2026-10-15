@@ -2,7 +2,7 @@ const DETALLES_SERVICIOS = {
   "papas-fritas": {
     nombre: "Papas Fritas",
     cotizador: "papas",
-    imagen: "../images/reales/papas-reales.webp",
+    imagen: "../images/mejoradas/papas-sobre-guante.webp",
     bajada: "Una estación de papas doradas, crujientes y recién preparadas para acompañar tu evento con un clásico que siempre funciona.",
     tituloCarta: "El clásico que reúne a todos",
     parrafos: [
